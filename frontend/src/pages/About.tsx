@@ -1,7 +1,7 @@
 export function About() {
   return (
     <div style={{ padding: 32, maxWidth: 800, margin: '0 auto' }}>
-      <h2 style={{ color: '#e0e0e0', marginBottom: 8, fontSize: 28 }}>About Infon Battle Arena</h2>
+      <h2 style={{ color: '#e0e0e0', marginBottom: 8, fontSize: 28 }}>About SwarmCrest</h2>
       <div style={{
         width: 60,
         height: 3,
@@ -19,8 +19,8 @@ export function About() {
       }}>
         <h3 style={{ color: '#16c79a', marginTop: 0, marginBottom: 12 }}>The Game</h3>
         <p style={{ color: '#ccc', lineHeight: 1.7, margin: 0 }}>
-          Infon Battle Arena was created by <strong style={{ color: '#f5a623' }}>Florian Wesch</strong> as
-          a programming game where players write Lua scripts to control swarms of creatures competing for
+          SwarmCrest is based on Infon Battle Arena, created by <strong style={{ color: '#f5a623' }}>Florian Wesch</strong>.
+          It is a programming game where players write Lua scripts to control swarms of creatures competing for
           food and territory. This web version brings the classic gameplay to the browser.
         </p>
       </section>
@@ -117,7 +117,7 @@ export function About() {
       }}>
         <h3 style={{ color: '#16c79a', marginTop: 0, marginBottom: 12 }}>License</h3>
         <p style={{ color: '#ccc', lineHeight: 1.7, margin: '0 0 16px 0' }}>
-          Infon Battle Arena is open-source software released under the{' '}
+          SwarmCrest is open-source software released under the{' '}
           <strong style={{ color: '#e0e0e0' }}>GNU General Public License (GPL)</strong>,
           matching the license of the original game.
         </p>
