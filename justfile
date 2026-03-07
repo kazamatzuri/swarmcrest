@@ -1,4 +1,4 @@
-# Infon Development Task Runner
+# SwarmCrest Development Task Runner
 # Use `just <recipe>` to run. Docker recipes are the default workflow;
 # prefix with `local-` to run directly on the host.
 #
@@ -90,7 +90,7 @@ status:
 
 # Build the production Docker image
 build-image:
-    docker build -t infon:latest .
+    docker build -t swarmcrest:latest .
 
 # Run locally with the production image (local mode, no auth)
 local-run:

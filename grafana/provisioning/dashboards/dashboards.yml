@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: Infon
+  - name: SwarmCrest
     orgId: 1
-    folder: Infon
+    folder: SwarmCrest
     type: file
     disableDeletion: false
     editable: true
