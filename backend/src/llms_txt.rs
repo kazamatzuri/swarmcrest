@@ -1,6 +1,6 @@
 // LLM-friendly documentation endpoint content.
 
-pub const LLMS_TXT: &str = r#"# Infon Battle Arena API
+pub const LLMS_TXT: &str = r#"# SwarmCrest API
 > A competitive bot programming platform where players write Lua bots to control creature swarms.
 
 ## API Base URL
@@ -60,17 +60,17 @@ See /api/docs/lua-api for the full API reference.
 - /ws/game - Live game state stream (JSON frames)
 "#;
 
-pub const LLMS_FULL_TXT: &str = r#"# Infon Battle Arena - Complete Documentation
+pub const LLMS_FULL_TXT: &str = r#"# SwarmCrest - Complete Documentation
 
-> Infon Battle Arena is a competitive bot programming platform where players write Lua scripts
+> SwarmCrest is a competitive bot programming platform where players write Lua scripts
 > to control swarms of creatures competing for food and territory on a 2D tile-based map.
-> Originally created by Florian Wesch, this web version brings the classic gameplay to the browser.
+> Based on the original Infon Battle Arena by Florian Wesch, this web version brings the classic gameplay to the browser.
 
 ---
 
 ## Platform Overview
 
-Infon Battle Arena is an open-source (GPL) multiplayer programming game. Players write Lua 5.1
+SwarmCrest is an open-source (GPL) multiplayer programming game. Players write Lua 5.1
 scripts that control autonomous creatures in a shared game world. The game runs in 100ms ticks,
 and each tick every creature's Lua coroutine is resumed to make decisions.
 
