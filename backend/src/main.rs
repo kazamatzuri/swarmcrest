@@ -16,7 +16,7 @@ mod worker_pool;
 
 use axum::{
     body::Body,
-    http::Request,
+    http::{Request, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::{get, post, put},
@@ -35,7 +35,27 @@ async fn health_check() -> Json<Value> {
     Json(json!({ "status": "ok", "service": "infon-backend" }))
 }
 
-async fn metrics_handler() -> impl IntoResponse {
+async fn metrics_handler(req: axum::http::Request<Body>) -> impl IntoResponse {
+    // In local mode, allow unrestricted access
+    if !crate::config::is_local_mode() {
+        let metrics_token = std::env::var("METRICS_TOKEN").ok();
+        if let Some(expected_token) = metrics_token {
+            let auth_header = req.headers()
+                .get("Authorization")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.strip_prefix("Bearer "));
+
+            match auth_header {
+                Some(token) if token == expected_token => {}
+                _ => {
+                    return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
+                }
+            }
+        }
+        // If METRICS_TOKEN is not set, metrics are publicly accessible (backwards compat)
+        // Set METRICS_TOKEN to restrict access
+    }
+
     let body = metrics::gather_metrics();
     (
         [(
@@ -44,6 +64,7 @@ async fn metrics_handler() -> impl IntoResponse {
         )],
         body,
     )
+        .into_response()
 }
 
 /// Axum middleware that records per-request metrics (count and duration).
