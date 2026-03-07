@@ -14,12 +14,12 @@ export function Home() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 48, textAlign: 'center' }}>
-      <h1 style={{ fontSize: 48, color: '#16c79a', marginBottom: 8 }}>Infon Arena</h1>
+      <h1 style={{ fontSize: 48, color: '#16c79a', marginBottom: 8 }}>SwarmCrest</h1>
       <p style={{ fontSize: 20, color: '#aaa', marginBottom: 32 }}>
         Program your bots. Compete for dominance.
       </p>
       <p style={{ maxWidth: 600, color: '#888', lineHeight: 1.6, marginBottom: 40 }}>
-        Infon Battle Arena is a programming game where you write Lua scripts to control swarms of creatures competing for food and territory. Train your bots, challenge opponents, and climb the leaderboard.
+        SwarmCrest is a programming game where you write Lua scripts to control swarms of creatures competing for food and territory. Train your bots, challenge opponents, and climb the leaderboard.
       </p>
       <div style={{ display: 'flex', gap: 16, marginBottom: 40 }}>
         <Link to="/register" style={{ background: '#16c79a', color: '#fff', padding: '12px 32px', borderRadius: 4, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>
