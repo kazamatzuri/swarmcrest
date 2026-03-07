@@ -27,7 +27,7 @@ function NavBar() {
 
   return (
     <nav className="app-nav">
-      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><h1 className="app-title">Infon Arena</h1></Link>
+      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><h1 className="app-title">SwarmCrest</h1></Link>
       {user ? (
         <>
           <NavLink to="/bots" className={navLinkClass}>Bot Library</NavLink>
