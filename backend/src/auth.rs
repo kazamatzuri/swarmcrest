@@ -5,11 +5,12 @@ use argon2::{
     Argon2,
 };
 use axum::{
-    extract::{FromRequestParts, State},
+    extract::{ConnectInfo, FromRequestParts, State},
     http::{request::Parts, StatusCode},
     response::IntoResponse,
     Json,
 };
+use std::net::SocketAddr;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -274,9 +275,18 @@ pub struct UserPublic {
 }
 
 pub async fn register(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(db): State<Arc<Database>>,
     Json(req): Json<RegisterRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = crate::rate_limit::check_auth_rate_limit(addr.ip()) {
+        return (
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({"error": e})),
+        )
+            .into_response();
+    }
+
     if req.username.is_empty() || req.password.is_empty() || req.email.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
@@ -368,9 +378,18 @@ pub async fn register(
 }
 
 pub async fn login(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(db): State<Arc<Database>>,
     Json(req): Json<LoginRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = crate::rate_limit::check_auth_rate_limit(addr.ip()) {
+        return (
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({"error": e})),
+        )
+            .into_response();
+    }
+
     let user = match db.get_user_by_username(&req.username).await {
         Ok(Some(u)) => u,
         Ok(None) => {

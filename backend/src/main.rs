@@ -200,9 +200,12 @@ async fn main() {
         .unwrap_or_else(|_| panic!("Failed to bind to {}", addr));
 
     tracing::info!("Infon backend listening on port {}", cfg.port);
-    axum::serve(listener, app)
-        .await
-        .expect("Failed to start server");
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .await
+    .expect("Failed to start server");
 }
 
 /// Ensure the default "local" user exists in the database for local mode.
