@@ -19,11 +19,15 @@ use crate::db::Database;
 
 // ── JWT ──────────────────────────────────────────────────────────────
 
-/// JWT secret – in production this should come from an env var.
+/// JWT secret – in production this **must** come from an env var.
 fn jwt_secret() -> Vec<u8> {
-    std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "infon-dev-secret-change-in-production".to_string())
-        .into_bytes()
+    match std::env::var("JWT_SECRET") {
+        Ok(secret) => secret.into_bytes(),
+        Err(_) if crate::config::is_local_mode() => {
+            "infon-dev-secret-change-in-production".to_string().into_bytes()
+        }
+        Err(_) => panic!("JWT_SECRET environment variable must be set in production mode"),
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
