@@ -108,7 +108,7 @@ export function ApiKeys() {
     <div style={{ maxWidth: 700, margin: '40px auto', padding: 24 }}>
       <h2>API Keys</h2>
       <p style={{ color: '#aaa', marginBottom: 24 }}>
-        Create API keys for programmatic access to the Infon API.
+        Create API keys for programmatic access to the SwarmCrest API.
       </p>
 
       {error && <p style={{ color: '#f44' }}>{error}</p>}
