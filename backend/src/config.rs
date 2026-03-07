@@ -26,7 +26,7 @@ impl Config {
     /// Load configuration from environment variables and CLI arguments.
     ///
     /// Environment variables:
-    /// - `DATABASE_URL` - SQLite connection string (default: `sqlite:infon.db?mode=rwc`)
+    /// - `DATABASE_URL` - SQLite connection string (default: `sqlite:swarmcrest.db?mode=rwc`)
     /// - `PORT` - HTTP server port (default: 3000)
     /// - `MAPS_DIR` - Path to maps directory (default: `../data/maps`)
     /// - `SWARMCREST_LOCAL_MODE` - Set to `true` to enable local mode
@@ -39,7 +39,7 @@ impl Config {
         let args: Vec<String> = std::env::args().collect();
 
         let database_url = std::env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "sqlite:infon.db?mode=rwc".to_string());
+            .unwrap_or_else(|_| "sqlite:swarmcrest.db?mode=rwc".to_string());
 
         // Port: CLI flag --port takes precedence, then env var, then default
         let port = Self::parse_cli_value(&args, "--port")

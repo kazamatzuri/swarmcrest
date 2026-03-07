@@ -1795,7 +1795,7 @@ async fn create_api_key(
         .unwrap_or_else(|| "bots:read,matches:read,leaderboard:read".to_string());
 
     // Generate random token
-    let raw_token = format!("infon_{}", hex::encode(generate_random_bytes()));
+    let raw_token = format!("sc_{}", hex::encode(generate_random_bytes()));
 
     // Hash it for storage
     let token_hash = hash_token(&raw_token);

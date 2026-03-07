@@ -109,7 +109,7 @@ async fn main() {
 
     // DATABASE_URL supports both sqlite:// and postgres:// connection strings.
     // Examples:
-    //   sqlite:infon.db?mode=rwc          (SQLite, default)
+    //   sqlite:swarmcrest.db?mode=rwc          (SQLite, default)
     //   sqlite::memory:                    (SQLite in-memory, for tests)
     //   postgres://user:pass@host/dbname   (PostgreSQL)
     // Install Any driver support for both SQLite and PostgreSQL.
