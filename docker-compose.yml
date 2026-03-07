@@ -17,6 +17,7 @@ services:
     environment:
       - RUST_LOG=info
       - DATABASE_URL=postgres://${POSTGRES_USER:-infon}:${POSTGRES_PASSWORD:-infon}@postgres:5432/${POSTGRES_DB:-infon}
+      - INFON_LOCAL_MODE=true
     depends_on:
       postgres:
         condition: service_healthy
