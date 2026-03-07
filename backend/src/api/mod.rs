@@ -415,6 +415,12 @@ async fn create_bot_version(
     Path(bot_id): Path<i64>,
     Json(req): Json<CreateBotVersionRequest>,
 ) -> impl IntoResponse {
+    // Reject code that exceeds 64 KB
+    const MAX_CODE_SIZE: usize = 64 * 1024;
+    if req.code.len() > MAX_CODE_SIZE {
+        return json_error(StatusCode::BAD_REQUEST, "Code exceeds maximum size of 64 KB")
+            .into_response();
+    }
     // Check bot exists and ownership
     match state.db.get_bot(bot_id).await {
         Ok(Some(bot)) => {
