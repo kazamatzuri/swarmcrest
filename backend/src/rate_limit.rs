@@ -199,9 +199,18 @@ impl Default for IpRateLimiter {
 
 static AUTH_IP_LIMITER: LazyLock<IpRateLimiter> = LazyLock::new(IpRateLimiter::new);
 
-/// Check auth endpoint rate limit for an IP (10 requests per 60 seconds).
+/// Check auth endpoint rate limit for an IP.
+/// Default: 10 requests per 60 seconds. Skipped in local mode.
+/// Override with `AUTH_RATE_LIMIT` env var (e.g. `AUTH_RATE_LIMIT=1000`).
 pub fn check_auth_rate_limit(ip: IpAddr) -> Result<(), String> {
-    AUTH_IP_LIMITER.check(ip, 10, Duration::from_secs(60))
+    if crate::config::is_local_mode() {
+        return Ok(());
+    }
+    let max: usize = std::env::var("AUTH_RATE_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10);
+    AUTH_IP_LIMITER.check(ip, max, Duration::from_secs(60))
 }
 
 #[cfg(test)]

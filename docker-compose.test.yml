@@ -1,0 +1,76 @@
+# Isolated test environment — completely separate from dev.
+# Usage: just test-all (or scripts/run-tests.sh)
+services:
+  test-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: swarmcrest_test
+      POSTGRES_PASSWORD: swarmcrest_test
+      POSTGRES_DB: swarmcrest_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - test-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swarmcrest_test"]
+      interval: 1s
+      timeout: 3s
+      retries: 20
+
+  test-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    ports:
+      - "3100:3000"
+    volumes:
+      - ./backend/src:/app/backend/src
+      - ./backend/tests:/app/backend/tests
+      - ./backend/Cargo.toml:/app/backend/Cargo.toml
+      - ./backend/Cargo.lock:/app/backend/Cargo.lock
+      - ./orig_game:/app/orig_game
+      - ./docs:/app/docs
+      - test-backend-target:/app/backend/target
+      - ./data/maps:/app/data/maps
+    environment:
+      - RUST_LOG=info
+      - DATABASE_URL=postgres://swarmcrest_test:swarmcrest_test@test-postgres:5432/swarmcrest_test
+      - JWT_SECRET=test-e2e-secret
+      - ALLOWED_ORIGINS=http://localhost:5174,http://test-frontend:5173
+      - AUTH_RATE_LIMIT=1000
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+    networks:
+      - test-net
+    # Override: just run the server (no cargo-watch)
+    command: ["cargo", "run"]
+
+  test-frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    ports:
+      - "5174:5173"
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/index.html:/app/frontend/index.html
+      - ./frontend/vite.config.ts:/app/frontend/vite.config.ts
+      - ./frontend/tsconfig.json:/app/frontend/tsconfig.json
+      - ./frontend/tsconfig.app.json:/app/frontend/tsconfig.app.json
+      - ./frontend/tsconfig.node.json:/app/frontend/tsconfig.node.json
+      - ./frontend/eslint.config.js:/app/frontend/eslint.config.js
+    environment:
+      - VITE_API_URL=http://test-backend:3000
+    depends_on:
+      - test-backend
+    networks:
+      - test-net
+
+volumes:
+  test-backend-target:
+
+networks:
+  test-net:
+    driver: bridge

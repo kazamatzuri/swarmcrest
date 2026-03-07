@@ -86,6 +86,24 @@ build: build-backend build-frontend
 status:
     docker compose ps
 
+# ---------- Isolated test environment ----------
+
+# Run all tests (backend + E2E) in an isolated Docker stack
+test-all:
+    ./scripts/run-tests.sh
+
+# Run all tests but keep the test stack running for debugging
+test-all-keep:
+    ./scripts/run-tests.sh --keep
+
+# Tear down the isolated test stack
+test-down:
+    docker compose -f docker-compose.test.yml -p swarmcrest-test down -v
+
+# View test stack logs
+test-logs:
+    docker compose -f docker-compose.test.yml -p swarmcrest-test logs -f
+
 # ---------- Production image & local play ----------
 
 # Build the production Docker image

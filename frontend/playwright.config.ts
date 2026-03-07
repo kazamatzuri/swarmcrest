@@ -11,17 +11,21 @@ export default defineConfig({
   reporter: [['list']],
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 30000,
-  },
+  // When PLAYWRIGHT_BASE_URL is set (e.g. from run-tests.sh), skip
+  // launching a local dev server — the test stack provides one.
+  ...(!process.env.PLAYWRIGHT_BASE_URL && {
+    webServer: {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+      timeout: 30000,
+    },
+  }),
 
   projects: [
     {
