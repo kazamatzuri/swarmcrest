@@ -2,6 +2,6 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'infon'
+  - job_name: 'swarmcrest'
     static_configs:
       - targets: ['backend:3000']
