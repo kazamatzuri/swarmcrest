@@ -3,11 +3,11 @@
 
 use std::sync::Arc;
 
-use infon_backend::db::Database;
-use infon_backend::engine::config::*;
-use infon_backend::engine::server::{run_game_headless, PlayerEntry};
-use infon_backend::engine::world::World;
-use infon_backend::worker_pool::WorkerPool;
+use swarmcrest_backend::db::Database;
+use swarmcrest_backend::engine::config::*;
+use swarmcrest_backend::engine::server::{run_game_headless, PlayerEntry};
+use swarmcrest_backend::engine::world::World;
+use swarmcrest_backend::worker_pool::WorkerPool;
 
 /// Create a small test world with walkable interior and food.
 fn create_test_world() -> World {
@@ -467,7 +467,7 @@ async fn test_end_to_end_enqueue_and_process() {
     assert_eq!(result.player_scores.len(), 2);
 
     // Run game completion (save replay, finish match, update stats)
-    infon_backend::queue::run_game_completion(
+    swarmcrest_backend::queue::run_game_completion(
         &db,
         m.id,
         &version_ids,

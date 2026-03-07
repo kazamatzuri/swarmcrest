@@ -3,9 +3,9 @@
 // These tests verify that the original bot Lua code loads and runs
 // without errors in our Rust game engine implementation.
 
-use infon_backend::engine::config::*;
-use infon_backend::engine::game::Game;
-use infon_backend::engine::world::World;
+use swarmcrest_backend::engine::config::*;
+use swarmcrest_backend::engine::game::Game;
+use swarmcrest_backend::engine::world::World;
 
 /// Create a 20x20 world with walkable interior and food.
 fn create_test_world() -> World {
