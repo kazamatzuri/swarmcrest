@@ -627,6 +627,7 @@ mod tests {
 
     #[test]
     fn test_jwt_create_and_verify() {
+        std::env::set_var("JWT_SECRET", "test-secret");
         let token = create_token(1, "testuser", "user").unwrap();
         let claims = verify_token(&token).unwrap();
         assert_eq!(claims.sub, 1);
@@ -636,11 +637,13 @@ mod tests {
 
     #[test]
     fn test_jwt_invalid_token() {
+        std::env::set_var("JWT_SECRET", "test-secret");
         assert!(verify_token("invalid.token.here").is_err());
     }
 
     #[test]
     fn test_jwt_claims_have_no_scopes() {
+        std::env::set_var("JWT_SECRET", "test-secret");
         let token = create_token(1, "testuser", "user").unwrap();
         let claims = verify_token(&token).unwrap();
         assert!(claims.scopes.is_none());
