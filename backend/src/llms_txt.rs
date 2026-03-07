@@ -7,7 +7,7 @@ pub const LLMS_TXT: &str = r#"# SwarmCrest API
 /api/
 
 ## Authentication
-API keys via Authorization header: `Authorization: Bearer infon_<key>`
+API keys via Authorization header: `Authorization: Bearer sc_<key>`
 Create keys in the web UI at /api-keys or via POST /api/api-keys.
 
 ## Key Endpoints
@@ -90,7 +90,7 @@ and each tick every creature's Lua coroutine is resumed to make decisions.
 
 All authenticated endpoints require an API key in the Authorization header:
 ```
-Authorization: Bearer infon_<key>
+Authorization: Bearer sc_<key>
 ```
 
 API keys are created in the web UI at /api-keys or programmatically via POST /api/api-keys.
@@ -106,7 +106,7 @@ POST /api/api-keys
 Authorization: Bearer <token>
 Content-Type: application/json
 {"name": "CI Key", "scopes": "bots:read,matches:read,matches:write"}
-Response: {"id": 1, "name": "CI Key", "token": "infon_a1b2c3...", ...}
+Response: {"id": 1, "name": "CI Key", "token": "sc_a1b2c3...", ...}
 ```
 The `token` field is only returned on creation. Store it securely.
 
