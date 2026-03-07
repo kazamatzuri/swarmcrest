@@ -409,12 +409,23 @@ async fn list_bot_versions(
     }
 }
 
+const MAX_BOT_CODE_SIZE: usize = 64 * 1024; // 64KB
+
 async fn create_bot_version(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(bot_id): Path<i64>,
     Json(req): Json<CreateBotVersionRequest>,
 ) -> impl IntoResponse {
+    // Enforce code size limit
+    if req.code.len() > MAX_BOT_CODE_SIZE {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": format!("Bot code exceeds maximum size of {}KB", MAX_BOT_CODE_SIZE / 1024)})),
+        )
+            .into_response();
+    }
+
     // Check bot exists and ownership
     match state.db.get_bot(bot_id).await {
         Ok(Some(bot)) => {
