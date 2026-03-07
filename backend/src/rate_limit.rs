@@ -1,7 +1,8 @@
 // In-memory rate limiter for challenge endpoints.
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::net::IpAddr;
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
 /// Different rate limit types with their constraints.
@@ -144,6 +145,63 @@ impl Default for RateLimiter {
     fn default() -> Self {
         Self::new()
     }
+}
+
+// ── Per-IP rate limiter for auth endpoints ────────────────────────────
+
+/// Simple per-IP rate limiter for auth endpoints.
+#[derive(Debug, Clone)]
+pub struct IpRateLimiter {
+    inner: Arc<Mutex<HashMap<IpAddr, Vec<Instant>>>>,
+}
+
+impl IpRateLimiter {
+    pub fn new() -> Self {
+        Self {
+            inner: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Check if the IP is within the rate limit.
+    /// Returns Ok(()) if allowed, Err with message if rate limited.
+    pub fn check(
+        &self,
+        ip: IpAddr,
+        max_requests: usize,
+        window: Duration,
+    ) -> Result<(), String> {
+        if crate::config::is_local_mode() {
+            return Ok(());
+        }
+        let mut map = self.inner.lock().unwrap();
+        let now = Instant::now();
+        let entries = map.entry(ip).or_insert_with(Vec::new);
+        entries.retain(|t| now.duration_since(*t) < window);
+
+        if entries.len() >= max_requests {
+            return Err(format!(
+                "Rate limit exceeded: max {} requests per {} seconds",
+                max_requests,
+                window.as_secs()
+            ));
+        }
+
+        entries.push(now);
+        Ok(())
+    }
+}
+
+impl Default for IpRateLimiter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+static AUTH_IP_LIMITER: LazyLock<IpRateLimiter> = LazyLock::new(IpRateLimiter::new);
+
+/// Check auth endpoint rate limit for an IP (10 requests per 60 seconds).
+pub fn check_auth_rate_limit(ip: IpAddr) -> Result<(), String> {
+    AUTH_IP_LIMITER.check(ip, 10, Duration::from_secs(60))
 }
 
 #[cfg(test)]
