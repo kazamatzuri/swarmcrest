@@ -22,7 +22,7 @@ use crate::db::Database;
 /// JWT secret – in production this should come from an env var.
 fn jwt_secret() -> Vec<u8> {
     std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "infon-dev-secret-change-in-production".to_string())
+        .unwrap_or_else(|_| "swarmcrest-dev-secret-change-in-production".to_string())
         .into_bytes()
 }
 
@@ -106,7 +106,7 @@ fn hash_api_token(token: &str) -> String {
 
 /// Try to authenticate via API token. Returns Claims if the token is valid.
 async fn try_api_token_auth(token: &str, parts: &Parts) -> Option<Claims> {
-    if !token.starts_with("infon_") {
+    if !token.starts_with("sc_") {
         return None;
     }
 
@@ -145,7 +145,7 @@ fn local_mode_claims() -> Claims {
 // ── Axum extractor: AuthUser ─────────────────────────────────────────
 
 /// Extracts the authenticated user from the Authorization header.
-/// Supports both JWT tokens and API keys (prefixed with "infon_").
+/// Supports both JWT tokens and API keys (prefixed with "sc_").
 /// Usage: `AuthUser(claims)` in handler parameters.
 #[derive(Debug, Clone)]
 pub struct AuthUser(pub Claims);
@@ -198,7 +198,7 @@ where
 }
 
 /// Optional auth extractor – does not reject if no token is present.
-/// Supports both JWT tokens and API keys (prefixed with "infon_").
+/// Supports both JWT tokens and API keys (prefixed with "sc_").
 #[derive(Debug, Clone)]
 pub struct OptionalAuthUser(pub Option<Claims>);
 
