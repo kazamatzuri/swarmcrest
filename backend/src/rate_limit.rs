@@ -21,7 +21,7 @@ impl RateLimitType {
         match self {
             RateLimitType::LiveGames => 3,
             RateLimitType::LiveChallenges => 10,
-            RateLimitType::HeadlessChallenges => 10000,
+            RateLimitType::HeadlessChallenges => 100,
         }
     }
 
@@ -243,12 +243,16 @@ mod tests {
     fn test_headless_challenges_limit() {
         let limiter = RateLimiter::new();
 
-        // HeadlessChallenges allows 10000 per hour — just verify a batch works
+        // HeadlessChallenges allows 100 per hour
         for _ in 0..100 {
             assert!(limiter
                 .check_limit(1, RateLimitType::HeadlessChallenges)
                 .is_ok());
         }
+        // 101st should be rejected
+        assert!(limiter
+            .check_limit(1, RateLimitType::HeadlessChallenges)
+            .is_err());
     }
 
     #[test]
