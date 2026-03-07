@@ -5,7 +5,7 @@ test.describe('Navigation & Layout', () => {
     await page.goto('/');
     const nav = page.locator('nav.app-nav');
     await expect(nav).toBeVisible();
-    await expect(nav.locator('h1')).toHaveText('Infon Arena');
+    await expect(nav.locator('h1')).toHaveText('SwarmCrest');
 
     // Public nav links visible
     await expect(nav.getByRole('link', { name: 'Leaderboard' })).toBeVisible();
@@ -35,7 +35,7 @@ test.describe('Navigation & Layout', () => {
   test('landing page shows for unauthenticated user', async ({ page }) => {
     await page.goto('/');
     const main = page.locator('main');
-    await expect(main.getByRole('heading', { name: 'Infon Arena' })).toBeVisible();
+    await expect(main.getByRole('heading', { name: 'SwarmCrest' })).toBeVisible();
     await expect(main.getByText('Program your bots')).toBeVisible();
     await expect(main.getByRole('link', { name: 'Start Competing' })).toBeVisible();
   });

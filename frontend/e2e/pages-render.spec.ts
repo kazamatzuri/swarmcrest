@@ -6,7 +6,7 @@ test.describe('Page Rendering - Public Routes', () => {
   test('/ (Home) renders landing page for unauthenticated user', async ({ page }) => {
     await page.goto('/');
     const main = page.locator('main');
-    await expect(main.getByRole('heading', { name: 'Infon Arena' })).toBeVisible();
+    await expect(main.getByRole('heading', { name: 'SwarmCrest' })).toBeVisible();
     await expect(main.getByText('Program your bots')).toBeVisible();
   });
 
@@ -31,7 +31,7 @@ test.describe('Page Rendering - Public Routes', () => {
 
   test('/about renders about page', async ({ page }) => {
     await page.goto('/about');
-    await expect(page.getByRole('heading', { name: 'About Infon Battle Arena' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'About SwarmCrest' })).toBeVisible();
     await expect(page.getByText('Florian Wesch')).toBeVisible();
   });
 
