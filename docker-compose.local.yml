@@ -8,15 +8,15 @@
 # Then open http://localhost:3000 in your browser.
 
 services:
-  infon:
+  swarmcrest:
     build: .
     ports:
       - "3000:3000"
     volumes:
-      - infon-data:/data
+      - swarmcrest-data:/data
     environment:
-      - INFON_LOCAL_MODE=true
+      - SWARMCREST_LOCAL_MODE=true
       - RUST_LOG=info
 
 volumes:
-  infon-data:
+  swarmcrest-data:

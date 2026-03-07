@@ -1,4 +1,4 @@
-# Multi-stage production Dockerfile for Infon Battle Arena
+# Multi-stage production Dockerfile for SwarmCrest Battle Arena
 # Builds frontend and backend into a single minimal image.
 
 # ── Stage 1: Build frontend ──────────────────────────────────────────
@@ -52,7 +52,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy the backend binary
-COPY --from=backend-builder /app/backend/target/release/infon-backend ./infon-backend
+COPY --from=backend-builder /app/backend/target/release/swarmcrest-backend ./swarmcrest-backend
 
 # Copy frontend build output
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
@@ -63,7 +63,7 @@ COPY data/maps ./data/maps
 # Create data directory for SQLite database
 RUN mkdir -p /data
 
-ENV DATABASE_URL=sqlite:///data/infon.db?mode=rwc
+ENV DATABASE_URL=sqlite:///data/swarmcrest.db?mode=rwc
 ENV MAPS_DIR=/app/data/maps
 ENV STATIC_DIR=/app/frontend/dist
 ENV PORT=3000
@@ -73,4 +73,4 @@ EXPOSE 3000
 
 VOLUME ["/data"]
 
-ENTRYPOINT ["./infon-backend"]
+ENTRYPOINT ["./swarmcrest-backend"]

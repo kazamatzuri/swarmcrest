@@ -16,13 +16,13 @@ services:
       - ./data/maps:/app/data/maps
     environment:
       - RUST_LOG=info
-      - DATABASE_URL=postgres://${POSTGRES_USER:-infon}:${POSTGRES_PASSWORD:-infon}@postgres:5432/${POSTGRES_DB:-infon}
-      - INFON_LOCAL_MODE=true
+      - DATABASE_URL=postgres://${POSTGRES_USER:-swarmcrest}:${POSTGRES_PASSWORD:-swarmcrest}@postgres:5432/${POSTGRES_DB:-swarmcrest}
+      - SWARMCREST_LOCAL_MODE=true
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - infon-net
+      - swarmcrest-net
 
   frontend:
     build:
@@ -44,7 +44,7 @@ services:
     depends_on:
       - backend
     networks:
-      - infon-net
+      - swarmcrest-net
 
   prometheus:
     image: prom/prometheus:latest
@@ -55,7 +55,7 @@ services:
     depends_on:
       - backend
     networks:
-      - infon-net
+      - swarmcrest-net
 
   grafana:
     image: grafana/grafana:latest
@@ -71,22 +71,22 @@ services:
     depends_on:
       - prometheus
     networks:
-      - infon-net
+      - swarmcrest-net
 
   postgres:
     image: postgres:16-alpine
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-infon}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-infon}
-      POSTGRES_DB: ${POSTGRES_DB:-infon}
+      POSTGRES_USER: ${POSTGRES_USER:-swarmcrest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-swarmcrest}
+      POSTGRES_DB: ${POSTGRES_DB:-swarmcrest}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - infon-net
+      - swarmcrest-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-infon}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-swarmcrest}"]
       interval: 2s
       timeout: 5s
       retries: 10
@@ -98,5 +98,5 @@ volumes:
   postgres-data:
 
 networks:
-  infon-net:
+  swarmcrest-net:
     driver: bridge

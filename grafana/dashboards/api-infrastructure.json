@@ -1,7 +1,7 @@
 {
-  "uid": "infon-api-infra",
-  "title": "Infon - API & Infrastructure",
-  "tags": ["infon"],
+  "uid": "swarmcrest-api-infra",
+  "title": "SwarmCrest - API & Infrastructure",
+  "tags": ["swarmcrest"],
   "timezone": "browser",
   "refresh": "10s",
   "time": { "from": "now-1h", "to": "now" },
@@ -11,7 +11,7 @@
       "title": "Request Rate (by endpoint)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "targets": [{ "expr": "sum by (endpoint) (rate(infon_api_requests_total[5m]))", "legendFormat": "{{endpoint}}" }],
+      "targets": [{ "expr": "sum by (endpoint) (rate(swarmcrest_api_requests_total[5m]))", "legendFormat": "{{endpoint}}" }],
       "fieldConfig": { "defaults": { "unit": "reqps" } }
     },
     {
@@ -19,7 +19,7 @@
       "title": "Request Rate (by status)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "targets": [{ "expr": "sum by (status) (rate(infon_api_requests_total[5m]))", "legendFormat": "{{status}}" }],
+      "targets": [{ "expr": "sum by (status) (rate(swarmcrest_api_requests_total[5m]))", "legendFormat": "{{status}}" }],
       "fieldConfig": { "defaults": { "unit": "reqps" } }
     },
     {
@@ -28,8 +28,8 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
       "targets": [
-        { "expr": "sum(rate(infon_api_requests_total{status=~\"4..\"}[5m]))", "legendFormat": "4xx" },
-        { "expr": "sum(rate(infon_api_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx" }
+        { "expr": "sum(rate(swarmcrest_api_requests_total{status=~\"4..\"}[5m]))", "legendFormat": "4xx" },
+        { "expr": "sum(rate(swarmcrest_api_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx" }
       ],
       "fieldConfig": { "defaults": { "unit": "reqps" } }
     },
@@ -39,9 +39,9 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum by (endpoint, le) (rate(infon_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p50 {{endpoint}}" },
-        { "expr": "histogram_quantile(0.95, sum by (endpoint, le) (rate(infon_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p95 {{endpoint}}" },
-        { "expr": "histogram_quantile(0.99, sum by (endpoint, le) (rate(infon_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p99 {{endpoint}}" }
+        { "expr": "histogram_quantile(0.50, sum by (endpoint, le) (rate(swarmcrest_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p50 {{endpoint}}" },
+        { "expr": "histogram_quantile(0.95, sum by (endpoint, le) (rate(swarmcrest_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p95 {{endpoint}}" },
+        { "expr": "histogram_quantile(0.99, sum by (endpoint, le) (rate(swarmcrest_api_request_duration_seconds_bucket[5m])))", "legendFormat": "p99 {{endpoint}}" }
       ],
       "fieldConfig": { "defaults": { "unit": "s" } }
     },
@@ -50,7 +50,7 @@
       "title": "Top 10 Slowest Endpoints (p95)",
       "type": "bargauge",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-      "targets": [{ "expr": "topk(10, histogram_quantile(0.95, sum by (endpoint, le) (rate(infon_api_request_duration_seconds_bucket[5m]))))", "legendFormat": "{{endpoint}}" }],
+      "targets": [{ "expr": "topk(10, histogram_quantile(0.95, sum by (endpoint, le) (rate(swarmcrest_api_request_duration_seconds_bucket[5m]))))", "legendFormat": "{{endpoint}}" }],
       "fieldConfig": { "defaults": { "unit": "s" } },
       "options": { "orientation": "horizontal", "displayMode": "gradient" }
     },
@@ -59,14 +59,14 @@
       "title": "Request Volume (by method)",
       "type": "piechart",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
-      "targets": [{ "expr": "sum by (method) (increase(infon_api_requests_total[1h]))", "legendFormat": "{{method}}" }]
+      "targets": [{ "expr": "sum by (method) (increase(swarmcrest_api_requests_total[1h]))", "legendFormat": "{{method}}" }]
     },
     {
       "id": 7,
       "title": "Total Requests (all time)",
       "type": "stat",
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 24 },
-      "targets": [{ "expr": "sum(infon_api_requests_total)", "legendFormat": "" }],
+      "targets": [{ "expr": "sum(swarmcrest_api_requests_total)", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -80,7 +80,7 @@
       "title": "Total Errors (all time)",
       "type": "stat",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 24 },
-      "targets": [{ "expr": "sum(infon_api_requests_total{status=~\"5..\"})", "legendFormat": "" }],
+      "targets": [{ "expr": "sum(swarmcrest_api_requests_total{status=~\"5..\"})", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -97,14 +97,14 @@
       "title": "WebSocket Connections",
       "type": "timeseries",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
-      "targets": [{ "expr": "infon_connected_websockets", "legendFormat": "connections" }]
+      "targets": [{ "expr": "swarmcrest_connected_websockets", "legendFormat": "connections" }]
     },
     {
       "id": 10,
       "title": "WebSocket Messages/s",
       "type": "timeseries",
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
-      "targets": [{ "expr": "rate(infon_websocket_messages_sent_total[5m])", "legendFormat": "msgs/s" }],
+      "targets": [{ "expr": "rate(swarmcrest_websocket_messages_sent_total[5m])", "legendFormat": "msgs/s" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     }
   ],
