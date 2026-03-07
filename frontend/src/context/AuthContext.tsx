@@ -29,7 +29,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const savedToken = localStorage.getItem('infon_token');
+  const savedToken = localStorage.getItem('swarmcrest_token');
   const [isLoading, setIsLoading] = useState(!!savedToken);
 
   useEffect(() => {
@@ -46,20 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(u);
         })
         .catch(() => {
-          localStorage.removeItem('infon_token');
+          localStorage.removeItem('swarmcrest_token');
         })
         .finally(() => setIsLoading(false));
     }
   }, [savedToken]);
 
   const login = (newToken: string, newUser: AuthUser) => {
-    localStorage.setItem('infon_token', newToken);
+    localStorage.setItem('swarmcrest_token', newToken);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
-    localStorage.removeItem('infon_token');
+    localStorage.removeItem('swarmcrest_token');
     setToken(null);
     setUser(null);
   };

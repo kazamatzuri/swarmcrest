@@ -1,7 +1,7 @@
 const BASE_URL = '';
 
 function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('infon_token');
+  const token = localStorage.getItem('swarmcrest_token');
   if (token) {
     return { Authorization: `Bearer ${token}` };
   }

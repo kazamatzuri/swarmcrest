@@ -80,7 +80,7 @@ export function GameList() {
 
   useEffect(() => {
     // Fetch all bots for the filter dropdown (with ?all=true)
-    fetch('/api/bots?all=true', { headers: { Authorization: `Bearer ${localStorage.getItem('infon_token') || ''}` } })
+    fetch('/api/bots?all=true', { headers: { Authorization: `Bearer ${localStorage.getItem('swarmcrest_token') || ''}` } })
       .then(r => r.ok ? r.json() : [])
       .then(setAllBots)
       .catch(() => {});
