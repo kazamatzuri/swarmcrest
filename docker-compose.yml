@@ -16,7 +16,7 @@ services:
       - ./data/maps:/app/data/maps
     environment:
       - RUST_LOG=info
-      - DATABASE_URL=postgres://infon:infon@postgres:5432/infon
+      - DATABASE_URL=postgres://${POSTGRES_USER:-infon}:${POSTGRES_PASSWORD:-infon}@postgres:5432/${POSTGRES_DB:-infon}
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,15 +75,15 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: infon
-      POSTGRES_PASSWORD: infon
-      POSTGRES_DB: infon
+      POSTGRES_USER: ${POSTGRES_USER:-infon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-infon}
+      POSTGRES_DB: ${POSTGRES_DB:-infon}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - infon-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U infon"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-infon}"]
       interval: 2s
       timeout: 5s
       retries: 10
