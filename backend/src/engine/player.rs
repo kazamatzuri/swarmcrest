@@ -34,6 +34,10 @@ impl Player {
         // after saving a reference to debug.sethook, so user code cannot access it.
         let lua = unsafe { Lua::unsafe_new() };
 
+        // Set memory limit to 64MB to prevent runaway scripts
+        lua.set_memory_limit(64 * 1024 * 1024)
+            .map_err(|e| format!("Failed to set memory limit: {e}"))?;
+
         // Register constants and API functions
         lua_api::register_constants(&lua, id)
             .map_err(|e| format!("Failed to register constants: {e}"))?;
