@@ -10,20 +10,20 @@ use tower::ServiceExt; // for oneshot()
 /// Each call yields a completely fresh database so tests are isolated.
 async fn test_app() -> axum::Router {
     sqlx::any::install_default_drivers();
-    let db = infon_backend::db::Database::new("sqlite::memory:")
+    let db = swarmcrest_backend::db::Database::new("sqlite::memory:")
         .await
         .unwrap();
     let db = Arc::new(db);
-    let game_server = Arc::new(infon_backend::engine::server::GameServer::new());
-    let rate_limiter = infon_backend::rate_limit::RateLimiter::new();
+    let game_server = Arc::new(swarmcrest_backend::engine::server::GameServer::new());
+    let rate_limiter = swarmcrest_backend::rate_limit::RateLimiter::new();
 
     // Enable local mode so the AuthUser extractor auto-authenticates.
-    infon_backend::config::set_local_mode(true);
+    swarmcrest_backend::config::set_local_mode(true);
 
     // Ensure the local user exists in this fresh database.
-    let password_hash = infon_backend::auth::hash_password("local-mode-password").unwrap();
+    let password_hash = swarmcrest_backend::auth::hash_password("local-mode-password").unwrap();
     db.create_user(
-        infon_backend::config::LOCAL_USERNAME,
+        swarmcrest_backend::config::LOCAL_USERNAME,
         "local@localhost",
         &password_hash,
         "Local Player",
@@ -32,7 +32,7 @@ async fn test_app() -> axum::Router {
     .unwrap();
 
     let maps_dir = std::path::PathBuf::from("../data/maps");
-    infon_backend::api::router(db, game_server, rate_limiter, maps_dir)
+    swarmcrest_backend::api::router(db, game_server, rate_limiter, maps_dir)
 }
 
 /// Parse the response body as JSON.
