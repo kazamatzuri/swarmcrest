@@ -1,4 +1,4 @@
-# Infon Lua API Reference
+# SwarmCrest Lua API Reference
 
 This documents the complete Lua API available to bot programmers. There are two API layers:
 1. **Low-level API** - Direct C functions exposed to Lua

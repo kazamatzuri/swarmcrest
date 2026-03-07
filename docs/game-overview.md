@@ -1,6 +1,6 @@
-# Infon Battle Arena - Game Overview
+# SwarmCrest - Game Overview
 
-Infon Battle Arena is an open-source (GPL) multiplayer programming game where players write Lua scripts to control creatures that compete for food and survival. Originally created by Florian Wesch, it's described as "like CoreWars on steroids."
+SwarmCrest is an open-source (GPL) multiplayer programming game where players write Lua scripts to control creatures that compete for food and survival. Originally created by Florian Wesch, it's described as "like CoreWars on steroids."
 
 ## How It Works
 

@@ -1,8 +1,8 @@
-# Infon Battle Arena — v2.0 Roadmap
+# SwarmCrest — v2.0 Roadmap
 
 ## Overview
 
-Version 2.0 transforms Infon from a single-user MVP into a full multiplayer competitive platform. Players sign up, write bots, compete in ranked matches and tournaments, and climb leaderboards — all through a web UI or a well-documented API that's LLM-friendly by design.
+Version 2.0 transforms SwarmCrest from a single-user MVP into a full multiplayer competitive platform. Players sign up, write bots, compete in ranked matches and tournaments, and climb leaderboards — all through a web UI or a well-documented API that's LLM-friendly by design.
 
 This document is organized into **phases**. Each phase is self-contained and delivers user-facing value. All phases will be developed in parallel.
 
@@ -595,8 +595,8 @@ Even without full forums, the platform itself should have:
 Provide a Docker image that runs the full game server locally:
 
 ```bash
-docker pull ghcr.io/infon/infon-server:latest
-docker run -p 3000:3000 infon/infon-server
+docker pull ghcr.io/swarmcrest/swarmcrest-server:latest
+docker run -p 3000:3000 swarmcrest/swarmcrest-server
 # Open http://localhost:3000
 ```
 
@@ -610,9 +610,9 @@ docker run -p 3000:3000 infon/infon-server
 A simple CLI for local bot testing:
 
 ```bash
-infon test mybot.lua                    # Run bot solo on default map
-infon match bot1.lua bot2.lua           # 1v1 match, print results
-infon match --live bot1.lua bot2.lua    # 1v1 with local web viewer
+swarmcrest test mybot.lua                    # Run bot solo on default map
+swarmcrest match bot1.lua bot2.lua           # 1v1 match, print results
+swarmcrest match --live bot1.lua bot2.lua    # 1v1 with local web viewer
 ```
 
 ---
@@ -672,44 +672,44 @@ This is not a phase — it's infrastructure that grows alongside every phase. Th
 
 ```
 # Gauges
-infon_active_games                          # currently running games
-infon_game_queue_depth                      # matches waiting to start
-infon_connected_websockets                  # live WebSocket connections
-infon_registered_users_total                # total user accounts
-infon_lua_vm_pool_active                    # Lua VMs currently executing
-infon_lua_vm_pool_available                 # Lua VMs idle in pool
+swarmcrest_active_games                          # currently running games
+swarmcrest_game_queue_depth                      # matches waiting to start
+swarmcrest_connected_websockets                  # live WebSocket connections
+swarmcrest_registered_users_total                # total user accounts
+swarmcrest_lua_vm_pool_active                    # Lua VMs currently executing
+swarmcrest_lua_vm_pool_available                 # Lua VMs idle in pool
 
 # Counters
-infon_games_started_total{format}           # by format: 1v1, ffa, 2v2, public
-infon_games_completed_total{format}
-infon_games_errored_total{format}           # games that crashed/timed out
-infon_api_requests_total{method,endpoint,status}
-infon_websocket_messages_sent_total
-infon_bot_submissions_total                 # new bot versions created
-infon_bot_validation_failures_total         # bots that failed validation
+swarmcrest_games_started_total{format}           # by format: 1v1, ffa, 2v2, public
+swarmcrest_games_completed_total{format}
+swarmcrest_games_errored_total{format}           # games that crashed/timed out
+swarmcrest_api_requests_total{method,endpoint,status}
+swarmcrest_websocket_messages_sent_total
+swarmcrest_bot_submissions_total                 # new bot versions created
+swarmcrest_bot_validation_failures_total         # bots that failed validation
 
 # Histograms
-infon_game_duration_seconds{format}         # how long matches take
-infon_game_tick_duration_ms                 # per-tick processing time
-infon_lua_execution_duration_ms             # per-bot Lua execution time
-infon_api_request_duration_seconds{endpoint}
-infon_websocket_frame_size_bytes
+swarmcrest_game_duration_seconds{format}         # how long matches take
+swarmcrest_game_tick_duration_ms                 # per-tick processing time
+swarmcrest_lua_execution_duration_ms             # per-bot Lua execution time
+swarmcrest_api_request_duration_seconds{endpoint}
+swarmcrest_websocket_frame_size_bytes
 ```
 
 #### Game / Gameplay Metrics
 
 ```
 # Counters
-infon_creatures_spawned_total{creature_type}     # bug, plant, koth_marker
-infon_creatures_killed_total{creature_type}
-infon_food_consumed_total
-infon_koth_captures_total                        # king-of-the-hill flips
+swarmcrest_creatures_spawned_total{creature_type}     # bug, plant, koth_marker
+swarmcrest_creatures_killed_total{creature_type}
+swarmcrest_food_consumed_total
+swarmcrest_koth_captures_total                        # king-of-the-hill flips
 
 # Histograms
-infon_match_score{format}                        # score distribution
-infon_creatures_per_game{format}                 # total creatures spawned per match
-infon_elo_change_per_match{format}               # magnitude of Elo swings (1v1, 2v2 only)
-infon_ffa_placement{position}                    # distribution of FFA placements
+swarmcrest_match_score{format}                        # score distribution
+swarmcrest_creatures_per_game{format}                 # total creatures spawned per match
+swarmcrest_elo_change_per_match{format}               # magnitude of Elo swings (1v1, 2v2 only)
+swarmcrest_ffa_placement{position}                    # distribution of FFA placements
 ```
 
 #### Player-Facing Stats (derived via PromQL)
@@ -718,25 +718,25 @@ These queries power dashboards and eventually in-app stats pages:
 
 ```promql
 # Games run today
-increase(infon_games_completed_total[24h])
+increase(swarmcrest_games_completed_total[24h])
 
 # Total kills across the platform (all time)
-infon_creatures_killed_total
+swarmcrest_creatures_killed_total
 
 # Average game duration by format
-histogram_quantile(0.5, rate(infon_game_duration_seconds_bucket[7d]))
+histogram_quantile(0.5, rate(swarmcrest_game_duration_seconds_bucket[7d]))
 
 # Most active format this week
-topk(1, increase(infon_games_completed_total[7d]))
+topk(1, increase(swarmcrest_games_completed_total[7d]))
 
 # Kill rate per minute across all games
-rate(infon_creatures_killed_total[5m]) * 60
+rate(swarmcrest_creatures_killed_total[5m]) * 60
 
 # Platform health: games erroring vs completing
-rate(infon_games_errored_total[1h]) / rate(infon_games_completed_total[1h])
+rate(swarmcrest_games_errored_total[1h]) / rate(swarmcrest_games_completed_total[1h])
 
 # Lua execution hot spots (P99 bot think time)
-histogram_quantile(0.99, rate(infon_lua_execution_duration_ms_bucket[5m]))
+histogram_quantile(0.99, rate(swarmcrest_lua_execution_duration_ms_bucket[5m]))
 ```
 
 ### Implementation Notes

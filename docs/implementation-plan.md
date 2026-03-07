@@ -1,8 +1,8 @@
-# Web-Based Infon - Implementation Plan
+# Web-Based SwarmCrest - Implementation Plan
 
 ## Vision
 
-Build a web-based version of Infon Battle Arena where players write Lua bots in a browser-based editor, manage a bot library, and run tournaments. The MVP focuses on a single-user experience with no authentication.
+Build a web-based version of SwarmCrest where players write Lua bots in a browser-based editor, manage a bot library, and run tournaments. The MVP focuses on a single-user experience with no authentication.
 
 ## Architecture Overview
 
@@ -301,7 +301,7 @@ db-migrate:
 
 # Reset database
 db-reset:
-    rm -f backend/infon.db
+    rm -f backend/swarmcrest.db
     just db-migrate
 
 # Run backend tests
@@ -404,7 +404,7 @@ infon/
     lua/
       oo.lua               # Copied from orig_game/api/oo.lua
       state.lua            # Copied from orig_game/api/state.lua
-    infon.db               # SQLite database (gitignored)
+    swarmcrest.db           # SQLite database (gitignored)
   frontend/
     src/
       components/
