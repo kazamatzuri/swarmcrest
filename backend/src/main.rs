@@ -24,6 +24,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 use std::sync::Arc;
+use axum::http::HeaderValue;
 use tower_http::cors::CorsLayer;
 
 use config::Config;
@@ -147,6 +148,21 @@ async fn main() {
     // look up API tokens without needing access to AppState directly.
     let db_for_ext = db.clone();
 
+    let cors = if cfg.local_mode {
+        CorsLayer::permissive()
+    } else {
+        let origins_str = std::env::var("ALLOWED_ORIGINS")
+            .unwrap_or_else(|_| "https://swarmcrest.submerged-intelligence.de".to_string());
+        let origins: Vec<HeaderValue> = origins_str
+            .split(',')
+            .filter_map(|s| s.trim().parse().ok())
+            .collect();
+        CorsLayer::new()
+            .allow_origin(origins)
+            .allow_methods(tower_http::cors::Any)
+            .allow_headers(tower_http::cors::Any)
+    };
+
     let mut app = Router::new()
         .route("/health", get(health_check))
         .route("/metrics", get(metrics_handler))
@@ -164,7 +180,7 @@ async fn main() {
             rate_limiter,
             cfg.maps_dir.clone(),
         ))
-        .layer(CorsLayer::permissive())
+        .layer(cors)
         .layer(axum::middleware::from_fn(metrics_middleware))
         .layer(axum::middleware::from_fn(
             move |mut req: axum::http::Request<axum::body::Body>, next: axum::middleware::Next| {
