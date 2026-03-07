@@ -29,11 +29,11 @@ impl Config {
     /// - `DATABASE_URL` - SQLite connection string (default: `sqlite:infon.db?mode=rwc`)
     /// - `PORT` - HTTP server port (default: 3000)
     /// - `MAPS_DIR` - Path to maps directory (default: `../data/maps`)
-    /// - `INFON_LOCAL_MODE` - Set to `true` to enable local mode
+    /// - `SWARMCREST_LOCAL_MODE` - Set to `true` to enable local mode
     /// - `STATIC_DIR` - Path to frontend dist directory for static file serving
     ///
     /// CLI flags:
-    /// - `--local` - Enable local mode (same as `INFON_LOCAL_MODE=true`)
+    /// - `--local` - Enable local mode (same as `SWARMCREST_LOCAL_MODE=true`)
     /// - `--port <PORT>` - Override the port
     pub fn load() -> Self {
         let args: Vec<String> = std::env::args().collect();
@@ -52,18 +52,18 @@ impl Config {
             .unwrap_or_else(|_| PathBuf::from("../data/maps"));
 
         let local_mode = args.contains(&"--local".to_string())
-            || std::env::var("INFON_LOCAL_MODE")
+            || std::env::var("SWARMCREST_LOCAL_MODE")
                 .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
                 .unwrap_or(false);
 
         let static_dir = std::env::var("STATIC_DIR").ok().map(PathBuf::from);
 
-        let worker_count = std::env::var("INFON_WORKER_COUNT")
+        let worker_count = std::env::var("SWARMCREST_WORKER_COUNT")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(4);
 
-        let queue_poll_ms = std::env::var("INFON_QUEUE_POLL_MS")
+        let queue_poll_ms = std::env::var("SWARMCREST_QUEUE_POLL_MS")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(1000);
