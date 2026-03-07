@@ -89,6 +89,14 @@ pub fn list_maps(maps_dir: &Path) -> Vec<MapInfo> {
 
 /// Load a map by name from the given directory. Returns a World or an error message.
 pub fn load_map(maps_dir: &Path, name: &str) -> Result<World, String> {
+    // Validate map name to prevent path traversal
+    if !name.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+        return Err(format!("Invalid map name '{}': only alphanumeric, underscore, and hyphen characters are allowed", name));
+    }
+    if name.is_empty() {
+        return Err("Map name cannot be empty".to_string());
+    }
+
     let path = maps_dir.join(format!("{}.json", name));
     let contents = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read map '{}': {}", name, e))?;
@@ -844,6 +852,34 @@ mod tests {
         };
         let json = serde_json::to_string(&end_msg).unwrap();
         assert!(json.contains("\"type\":\"game_end\""));
+    }
+
+    #[test]
+    fn test_load_map_rejects_path_traversal() {
+        let dir = std::path::Path::new("/tmp");
+        assert!(load_map(dir, "../etc/passwd").is_err());
+        assert!(load_map(dir, "../../secret").is_err());
+        assert!(load_map(dir, "maps/../../etc").is_err());
+        assert!(load_map(dir, "").is_err());
+    }
+
+    #[test]
+    fn test_load_map_accepts_valid_names() {
+        // These should not error on validation (may error on file not found, which is fine)
+        let dir = std::path::Path::new("/tmp");
+        let result = load_map(dir, "valid-map");
+        assert!(result.is_err()); // file not found, but not validation error
+        match result {
+            Err(e) => assert!(!e.contains("Invalid map name")),
+            Ok(_) => panic!("expected error"),
+        }
+
+        let result = load_map(dir, "map_123");
+        assert!(result.is_err());
+        match result {
+            Err(e) => assert!(!e.contains("Invalid map name")),
+            Ok(_) => panic!("expected error"),
+        }
     }
 
     #[test]
