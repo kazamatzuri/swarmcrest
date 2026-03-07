@@ -1,7 +1,7 @@
 {
-  "uid": "infon-game-engine",
-  "title": "Infon - Game Engine",
-  "tags": ["infon"],
+  "uid": "swarmcrest-game-engine",
+  "title": "SwarmCrest - Game Engine",
+  "tags": ["swarmcrest"],
   "timezone": "browser",
   "refresh": "10s",
   "time": { "from": "now-1h", "to": "now" },
@@ -11,7 +11,7 @@
       "title": "Active Games",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
-      "targets": [{ "expr": "infon_active_games", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_active_games", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -28,7 +28,7 @@
       "title": "Queue Depth",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
-      "targets": [{ "expr": "infon_game_queue_depth", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_game_queue_depth", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -46,7 +46,7 @@
       "title": "WebSocket Connections",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
-      "targets": [{ "expr": "infon_connected_websockets", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_connected_websockets", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -62,7 +62,7 @@
       "title": "Lua VMs Active",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
-      "targets": [{ "expr": "infon_lua_vm_pool_active", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_lua_vm_pool_active", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -78,7 +78,7 @@
       "title": "Bot Submissions",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
-      "targets": [{ "expr": "infon_bot_submissions_total", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_bot_submissions_total", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -92,7 +92,7 @@
       "title": "Validation Failures",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
-      "targets": [{ "expr": "infon_bot_validation_failures_total", "legendFormat": "" }],
+      "targets": [{ "expr": "swarmcrest_bot_validation_failures_total", "legendFormat": "" }],
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -109,7 +109,7 @@
       "title": "Games Started (by format)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 4 },
-      "targets": [{ "expr": "rate(infon_games_started_total[5m])", "legendFormat": "{{format}}" }],
+      "targets": [{ "expr": "rate(swarmcrest_games_started_total[5m])", "legendFormat": "{{format}}" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     },
     {
@@ -117,7 +117,7 @@
       "title": "Games Completed (by format)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 4 },
-      "targets": [{ "expr": "rate(infon_games_completed_total[5m])", "legendFormat": "{{format}}" }],
+      "targets": [{ "expr": "rate(swarmcrest_games_completed_total[5m])", "legendFormat": "{{format}}" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     },
     {
@@ -125,7 +125,7 @@
       "title": "Games Errored (by format)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 4 },
-      "targets": [{ "expr": "rate(infon_games_errored_total[5m])", "legendFormat": "{{format}}" }],
+      "targets": [{ "expr": "rate(swarmcrest_games_errored_total[5m])", "legendFormat": "{{format}}" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     },
     {
@@ -133,7 +133,7 @@
       "title": "Game Duration Distribution",
       "type": "histogram",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "targets": [{ "expr": "infon_game_duration_seconds_bucket", "legendFormat": "{{format}}", "format": "heatmap" }],
+      "targets": [{ "expr": "swarmcrest_game_duration_seconds_bucket", "legendFormat": "{{format}}", "format": "heatmap" }],
       "fieldConfig": { "defaults": { "unit": "s" } }
     },
     {
@@ -142,9 +142,9 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
       "targets": [
-        { "expr": "histogram_quantile(0.50, rate(infon_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p50" },
-        { "expr": "histogram_quantile(0.95, rate(infon_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p95" },
-        { "expr": "histogram_quantile(0.99, rate(infon_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p99" }
+        { "expr": "histogram_quantile(0.50, rate(swarmcrest_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, rate(swarmcrest_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, rate(swarmcrest_game_tick_duration_ms_bucket[5m]))", "legendFormat": "p99" }
       ],
       "fieldConfig": { "defaults": { "unit": "ms" } }
     },
@@ -153,7 +153,7 @@
       "title": "Creatures Spawned (by type)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
-      "targets": [{ "expr": "rate(infon_creatures_spawned_total[5m])", "legendFormat": "{{creature_type}}" }],
+      "targets": [{ "expr": "rate(swarmcrest_creatures_spawned_total[5m])", "legendFormat": "{{creature_type}}" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     },
     {
@@ -161,7 +161,7 @@
       "title": "Creatures Killed (by type)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
-      "targets": [{ "expr": "rate(infon_creatures_killed_total[5m])", "legendFormat": "{{creature_type}}" }],
+      "targets": [{ "expr": "rate(swarmcrest_creatures_killed_total[5m])", "legendFormat": "{{creature_type}}" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     },
     {
@@ -169,7 +169,7 @@
       "title": "WebSocket Messages Sent",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
-      "targets": [{ "expr": "rate(infon_websocket_messages_sent_total[5m])", "legendFormat": "msgs/s" }],
+      "targets": [{ "expr": "rate(swarmcrest_websocket_messages_sent_total[5m])", "legendFormat": "msgs/s" }],
       "fieldConfig": { "defaults": { "unit": "ops" } }
     }
   ],
