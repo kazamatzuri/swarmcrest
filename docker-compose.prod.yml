@@ -23,7 +23,7 @@ services:
       - swarmcrest-net
 
   backend:
-    image: ghcr.io/kazamatzuri/infon:latest
+    image: ghcr.io/kazamatzuri/swarmcrest:latest
     restart: unless-stopped
     expose:
       - "3000"
