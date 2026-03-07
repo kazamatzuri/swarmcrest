@@ -39,7 +39,7 @@ export function FeedbackButton() {
 
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      const token = localStorage.getItem('infon_token');
+      const token = localStorage.getItem('swarmcrest_token');
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const res = await fetch('/api/feedback', {
