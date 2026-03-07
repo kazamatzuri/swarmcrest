@@ -32,7 +32,7 @@ use rate_limit::RateLimiter;
 use worker_pool::WorkerPool;
 
 async fn health_check() -> Json<Value> {
-    Json(json!({ "status": "ok", "service": "infon-backend" }))
+    Json(json!({ "status": "ok", "service": "swarmcrest-backend" }))
 }
 
 async fn metrics_handler() -> impl IntoResponse {
@@ -199,7 +199,7 @@ async fn main() {
         .await
         .unwrap_or_else(|_| panic!("Failed to bind to {}", addr));
 
-    tracing::info!("Infon backend listening on port {}", cfg.port);
+    tracing::info!("SwarmCrest backend listening on port {}", cfg.port);
     axum::serve(listener, app)
         .await
         .expect("Failed to start server");
