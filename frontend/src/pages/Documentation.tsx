@@ -183,9 +183,9 @@ function GettingStarted() {
     <>
       <SectionTitle>Getting Started</SectionTitle>
 
-      <Card title="Welcome to Infon Battle Arena">
+      <Card title="Welcome to SwarmCrest">
         <p style={textStyle}>
-          Infon is a competitive programming game where you write Lua scripts to control swarms
+          SwarmCrest is a competitive programming game where you write Lua scripts to control swarms
           of creatures. Your bots eat food, grow, fight enemies, and compete for territory --
           all autonomously based on the code you write.
         </p>
@@ -497,7 +497,7 @@ function RestApiDocs() {
 
       <Card title="Authentication with API Keys">
         <p style={textStyle}>
-          To use the Infon API programmatically, you need an API key. API keys are long-lived tokens
+          To use the SwarmCrest API programmatically, you need an API key. API keys are long-lived tokens
           that don't expire (but can be revoked at any time).
         </p>
 
@@ -507,7 +507,7 @@ function RestApiDocs() {
         <p style={textStyle}>
           Go to the <strong style={{ color: '#e0e0e0' }}>API Keys</strong> page in the web UI (nav bar, top right).
           Give your key a name and select the scopes you need. The key token (prefixed with{' '}
-          <code style={{ color: '#16c79a' }}>infon_</code>) is shown only once -- copy and store it securely.
+          <code style={{ color: '#16c79a' }}>sc_</code>) is shown only once -- copy and store it securely.
         </p>
 
         <h4 style={{ color: '#f5a623', marginTop: 16, marginBottom: 8, fontSize: 14 }}>
@@ -516,15 +516,15 @@ function RestApiDocs() {
         <p style={textStyle}>
           Include your API key in the <code style={{ color: '#16c79a' }}>Authorization</code> header of every request:
         </p>
-        <CodeBlock>{`Authorization: Bearer infon_<your_key>`}</CodeBlock>
+        <CodeBlock>{`Authorization: Bearer sc_<your_key>`}</CodeBlock>
         <p style={textStyle}>Example:</p>
         <CodeBlock>{`# List your bots
 curl http://localhost:3000/api/bots \\
-  -H "Authorization: Bearer infon_a1b2c3..."
+  -H "Authorization: Bearer sc_a1b2c3..."
 
 # Create a headless challenge match
 curl -X POST http://localhost:3000/api/matches/challenge \\
-  -H "Authorization: Bearer infon_a1b2c3..." \\
+  -H "Authorization: Bearer sc_a1b2c3..." \\
   -H "Content-Type: application/json" \\
   -d '{"bot_version_id": 1, "opponent_bot_version_id": 2, "format": "1v1", "headless": true}'`}</CodeBlock>
       </Card>
@@ -618,7 +618,7 @@ WS       /ws/game               - Live game WebSocket`}</CodeBlock>
           then use it to automate matches:
         </p>
         <CodeBlock>{`# Set your API key (created from the API Keys page in the web UI)
-API_KEY="infon_your_key_here"
+API_KEY="sc_your_key_here"
 
 # List your bots to find version IDs
 curl http://localhost:3000/api/bots \\

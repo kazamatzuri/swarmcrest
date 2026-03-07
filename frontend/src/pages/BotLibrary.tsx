@@ -41,7 +41,7 @@ export function BotLibrary() {
 
   const handleCreate = async () => {
     try {
-      const bot = await api.createBot('New Bot', 'A new Infon bot');
+      const bot = await api.createBot('New Bot', 'A new SwarmCrest bot');
       navigate(`/editor/${bot.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create bot');
