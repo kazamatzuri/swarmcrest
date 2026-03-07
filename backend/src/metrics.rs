@@ -1,4 +1,4 @@
-// Prometheus metrics definitions for the Infon backend.
+// Prometheus metrics definitions for the SwarmCrest backend.
 
 use lazy_static::lazy_static;
 use prometheus::{
@@ -13,85 +13,85 @@ lazy_static! {
 
     /// Currently running games (0 or 1 for MVP, will scale later).
     pub static ref ACTIVE_GAMES: IntGauge =
-        IntGauge::new("infon_active_games", "Currently running games").unwrap();
+        IntGauge::new("swarmcrest_active_games", "Currently running games").unwrap();
 
     /// Matches waiting in the queue to start.
     pub static ref GAME_QUEUE_DEPTH: IntGauge =
-        IntGauge::new("infon_game_queue_depth", "Matches waiting to start").unwrap();
+        IntGauge::new("swarmcrest_game_queue_depth", "Matches waiting to start").unwrap();
 
     /// Live WebSocket connections.
     pub static ref CONNECTED_WEBSOCKETS: IntGauge =
-        IntGauge::new("infon_connected_websockets", "Live WebSocket connections").unwrap();
+        IntGauge::new("swarmcrest_connected_websockets", "Live WebSocket connections").unwrap();
 
     /// Lua VMs currently executing (reserved for future pool usage).
     pub static ref LUA_VM_POOL_ACTIVE: IntGauge =
-        IntGauge::new("infon_lua_vm_pool_active", "Lua VMs currently executing").unwrap();
+        IntGauge::new("swarmcrest_lua_vm_pool_active", "Lua VMs currently executing").unwrap();
 
     /// Headless game worker threads currently active.
     pub static ref HEADLESS_WORKERS_ACTIVE: IntGauge =
-        IntGauge::new("infon_headless_workers_active", "Headless game workers currently active").unwrap();
+        IntGauge::new("swarmcrest_headless_workers_active", "Headless game workers currently active").unwrap();
 
     // ── Counters ─────────────────────────────────────────────────────
 
     /// Total games started, by format (1v1, ffa, 2v2).
     pub static ref GAMES_STARTED_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_games_started_total", "Total games started"),
+        Opts::new("swarmcrest_games_started_total", "Total games started"),
         &["format"],
     )
     .unwrap();
 
     /// Total games completed, by format.
     pub static ref GAMES_COMPLETED_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_games_completed_total", "Total games completed"),
+        Opts::new("swarmcrest_games_completed_total", "Total games completed"),
         &["format"],
     )
     .unwrap();
 
     /// Total games that errored, by format.
     pub static ref GAMES_ERRORED_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_games_errored_total", "Total games that errored"),
+        Opts::new("swarmcrest_games_errored_total", "Total games that errored"),
         &["format"],
     )
     .unwrap();
 
     /// Total API requests, by method/endpoint/status.
     pub static ref API_REQUESTS_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_api_requests_total", "Total API requests"),
+        Opts::new("swarmcrest_api_requests_total", "Total API requests"),
         &["method", "endpoint", "status"],
     )
     .unwrap();
 
     /// Total WebSocket messages sent to clients.
     pub static ref WEBSOCKET_MESSAGES_SENT_TOTAL: IntCounter = IntCounter::new(
-        "infon_websocket_messages_sent_total",
+        "swarmcrest_websocket_messages_sent_total",
         "Total WebSocket messages sent",
     )
     .unwrap();
 
     /// Total new bot versions created.
     pub static ref BOT_SUBMISSIONS_TOTAL: IntCounter = IntCounter::new(
-        "infon_bot_submissions_total",
+        "swarmcrest_bot_submissions_total",
         "New bot versions created",
     )
     .unwrap();
 
     /// Total bots that failed Lua validation.
     pub static ref BOT_VALIDATION_FAILURES_TOTAL: IntCounter = IntCounter::new(
-        "infon_bot_validation_failures_total",
+        "swarmcrest_bot_validation_failures_total",
         "Bots that failed Lua validation",
     )
     .unwrap();
 
     /// Total creatures spawned, by creature type.
     pub static ref CREATURES_SPAWNED_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_creatures_spawned_total", "Total creatures spawned"),
+        Opts::new("swarmcrest_creatures_spawned_total", "Total creatures spawned"),
         &["creature_type"],
     )
     .unwrap();
 
     /// Total creatures killed, by creature type.
     pub static ref CREATURES_KILLED_TOTAL: IntCounterVec = IntCounterVec::new(
-        Opts::new("infon_creatures_killed_total", "Total creatures killed"),
+        Opts::new("swarmcrest_creatures_killed_total", "Total creatures killed"),
         &["creature_type"],
     )
     .unwrap();
@@ -100,7 +100,7 @@ lazy_static! {
 
     /// Game duration in seconds, by format.
     pub static ref GAME_DURATION_SECONDS: HistogramVec = HistogramVec::new(
-        HistogramOpts::new("infon_game_duration_seconds", "Game duration in seconds")
+        HistogramOpts::new("swarmcrest_game_duration_seconds", "Game duration in seconds")
             .buckets(vec![10.0, 30.0, 60.0, 120.0, 300.0, 600.0, 900.0, 1200.0]),
         &["format"],
     )
@@ -108,7 +108,7 @@ lazy_static! {
 
     /// Per-tick processing time in milliseconds.
     pub static ref GAME_TICK_DURATION_MS: Histogram = Histogram::with_opts(
-        HistogramOpts::new("infon_game_tick_duration_ms", "Per-tick processing time in ms")
+        HistogramOpts::new("swarmcrest_game_tick_duration_ms", "Per-tick processing time in ms")
             .buckets(vec![0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 100.0]),
     )
     .unwrap();
@@ -116,7 +116,7 @@ lazy_static! {
     /// API request duration in seconds, by endpoint.
     pub static ref API_REQUEST_DURATION_SECONDS: HistogramVec = HistogramVec::new(
         HistogramOpts::new(
-            "infon_api_request_duration_seconds",
+            "swarmcrest_api_request_duration_seconds",
             "API request duration in seconds",
         )
         .buckets(vec![0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 5.0]),
@@ -207,7 +207,7 @@ mod tests {
         register_metrics();
         let output = gather_metrics();
         // Output should be empty or contain metric lines (no panic)
-        assert!(output.is_empty() || output.contains("infon_"));
+        assert!(output.is_empty() || output.contains("swarmcrest_"));
     }
 
     #[test]
