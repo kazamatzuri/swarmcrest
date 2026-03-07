@@ -60,17 +60,11 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 # Copy map data
 COPY data/maps ./data/maps
 
-# Create data directory for SQLite database
-RUN mkdir -p /data
-
-ENV DATABASE_URL=sqlite:///data/swarmcrest.db?mode=rwc
 ENV MAPS_DIR=/app/data/maps
 ENV STATIC_DIR=/app/frontend/dist
 ENV PORT=3000
 ENV RUST_LOG=info
 
 EXPOSE 3000
-
-VOLUME ["/data"]
 
 ENTRYPOINT ["./swarmcrest-backend"]

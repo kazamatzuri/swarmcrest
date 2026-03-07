@@ -22,3 +22,7 @@ frontend/dist/
 # Playwright
 test-results/
 playwright-report/
+
+# Production
+.env
+backups/

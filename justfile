@@ -104,6 +104,36 @@ test-down:
 test-logs:
     docker compose -f docker-compose.test.yml -p swarmcrest-test logs -f
 
+# ---------- Production deployment ----------
+
+# Deploy production stack (requires .env file with secrets)
+prod-up:
+    docker compose -f docker-compose.prod.yml up --build -d
+
+# Stop production stack
+prod-down:
+    docker compose -f docker-compose.prod.yml down
+
+# View production logs
+prod-logs:
+    docker compose -f docker-compose.prod.yml logs -f
+
+# View production backend logs only
+prod-logs-backend:
+    docker compose -f docker-compose.prod.yml logs -f backend
+
+# Production status
+prod-status:
+    docker compose -f docker-compose.prod.yml ps
+
+# Run database backup
+prod-backup:
+    ./scripts/backup-db.sh
+
+# Deploy with monitoring (Prometheus + Grafana)
+prod-up-monitoring:
+    docker compose -f docker-compose.prod.yml --profile monitoring up --build -d
+
 # ---------- Production image & local play ----------
 
 # Build the production Docker image

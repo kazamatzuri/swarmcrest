@@ -16,6 +16,7 @@ services:
       - swarmcrest-data:/data
     environment:
       - SWARMCREST_LOCAL_MODE=true
+      - DATABASE_URL=sqlite:///data/swarmcrest.db?mode=rwc
       - RUST_LOG=info
 
 volumes:

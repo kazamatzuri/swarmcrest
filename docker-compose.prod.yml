@@ -1,0 +1,102 @@
+# Production deployment for SwarmCrest.
+# Usage:
+#   cp .env.example .env   # then fill in secrets
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Caddy handles TLS automatically via Let's Encrypt.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
+    networks:
+      - swarmcrest-net
+
+  backend:
+    build: .
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-swarmcrest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-swarmcrest}
+      - JWT_SECRET=${JWT_SECRET}
+      - ALLOWED_ORIGINS=https://${DOMAIN:-swarmcrest.submerged-intelligence.de}
+      - METRICS_TOKEN=${METRICS_TOKEN:-}
+      - SWARMCREST_WORKER_COUNT=${SWARMCREST_WORKER_COUNT:-4}
+      - SWARMCREST_QUEUE_POLL_MS=${SWARMCREST_QUEUE_POLL_MS:-1000}
+      - RUST_LOG=${RUST_LOG:-info}
+      - STATIC_DIR=/app/frontend/dist
+      - MAPS_DIR=/app/data/maps
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - swarmcrest-net
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-swarmcrest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-swarmcrest}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - swarmcrest-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-swarmcrest}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: internal-only monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - swarmcrest-net
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://${DOMAIN:-swarmcrest.submerged-intelligence.de}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - swarmcrest-net
+    profiles:
+      - monitoring
+
+volumes:
+  caddy-data:
+  caddy-config:
+  postgres-data:
+  grafana-data:
+
+networks:
+  swarmcrest-net:
+    driver: bridge
