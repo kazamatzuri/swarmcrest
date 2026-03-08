@@ -8,6 +8,7 @@ mod elo;
 mod engine;
 mod llms_txt;
 mod metrics;
+mod oauth;
 mod queue;
 mod rate_limit;
 mod replay;
@@ -144,6 +145,9 @@ async fn main() {
         Err(e) => tracing::error!("Failed to clean up stale queue jobs: {e}"),
     }
 
+    // OAuth state for SSO providers (builds oauth2 clients at startup if configured)
+    let oauth_state = Arc::new(oauth::OAuthState::new(&cfg, db.clone()));
+
     let game_server = Arc::new(GameServer::new());
     let rate_limiter = RateLimiter::new();
     let worker_pool = Arc::new(WorkerPool::new(cfg.worker_count));
@@ -196,6 +200,13 @@ async fn main() {
         .route("/api/auth/me", get(auth::me))
         .route("/api/auth/profile", put(auth::update_profile))
         .with_state(db.clone())
+        // OAuth SSO routes
+        .route("/api/auth/providers", get(oauth::auth_providers))
+        .route("/api/auth/oauth/github", get(oauth::github_auth_start))
+        .route("/api/auth/oauth/github/callback", get(oauth::github_auth_callback))
+        .route("/api/auth/oauth/google", get(oauth::google_auth_start))
+        .route("/api/auth/oauth/google/callback", get(oauth::google_auth_callback))
+        .with_state(oauth_state)
         .merge(api::router(
             db,
             game_server,

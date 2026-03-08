@@ -20,6 +20,16 @@ pub struct Config {
     pub worker_count: usize,
     /// Interval in milliseconds between queue polls.
     pub queue_poll_ms: u64,
+    /// OAuth: GitHub client ID (None = GitHub SSO disabled).
+    pub github_client_id: Option<String>,
+    /// OAuth: GitHub client secret.
+    pub github_client_secret: Option<String>,
+    /// OAuth: Google client ID (None = Google SSO disabled).
+    pub google_client_id: Option<String>,
+    /// OAuth: Google client secret.
+    pub google_client_secret: Option<String>,
+    /// Base URL for OAuth redirect callbacks (e.g. https://swarmcrest.submerged-intelligence.de).
+    pub oauth_redirect_base: String,
 }
 
 impl Config {
@@ -68,6 +78,13 @@ impl Config {
             .and_then(|v| v.parse().ok())
             .unwrap_or(1000);
 
+        let github_client_id = std::env::var("GITHUB_CLIENT_ID").ok();
+        let github_client_secret = std::env::var("GITHUB_CLIENT_SECRET").ok();
+        let google_client_id = std::env::var("GOOGLE_CLIENT_ID").ok();
+        let google_client_secret = std::env::var("GOOGLE_CLIENT_SECRET").ok();
+        let oauth_redirect_base = std::env::var("OAUTH_REDIRECT_BASE")
+            .unwrap_or_else(|_| format!("http://localhost:{port}"));
+
         Config {
             database_url,
             port,
@@ -76,6 +93,11 @@ impl Config {
             static_dir,
             worker_count,
             queue_poll_ms,
+            github_client_id,
+            github_client_secret,
+            google_client_id,
+            google_client_secret,
+            oauth_redirect_base,
         }
     }
 

@@ -37,6 +37,11 @@ services:
       - RUST_LOG=${RUST_LOG:-info}
       - STATIC_DIR=/app/frontend/dist
       - MAPS_DIR=/app/data/maps
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - OAUTH_REDIRECT_BASE=https://${DOMAIN:-swarmcrest.submerged-intelligence.de}
     depends_on:
       postgres:
         condition: service_healthy

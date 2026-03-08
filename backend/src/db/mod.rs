@@ -28,6 +28,17 @@ pub struct User {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct OAuthAccount {
+    pub id: i64,
+    pub user_id: i64,
+    pub provider: String,
+    pub provider_user_id: String,
+    pub provider_username: Option<String>,
+    pub provider_email: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Bot {
     pub id: i64,
     pub name: String,
@@ -558,6 +569,19 @@ impl Database {
         // Add map_params column to existing game_queue tables
         let _ = self.exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT").await;
 
+        self.exec(r#"
+            CREATE TABLE IF NOT EXISTS oauth_accounts (
+                id BIGSERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                provider TEXT NOT NULL,
+                provider_user_id TEXT NOT NULL,
+                provider_username TEXT,
+                provider_email TEXT,
+                created_at TEXT NOT NULL DEFAULT (now()::text),
+                UNIQUE(provider, provider_user_id)
+            )
+        "#).await?;
+
         Ok(())
     }
 
@@ -832,6 +856,19 @@ impl Database {
         // Add map_params column to existing game_queue tables
         let _ = self.exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT").await;
 
+        self.exec(r#"
+            CREATE TABLE IF NOT EXISTS oauth_accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                provider TEXT NOT NULL,
+                provider_user_id TEXT NOT NULL,
+                provider_username TEXT,
+                provider_email TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(provider, provider_user_id)
+            )
+        "#).await?;
+
         Ok(())
     }
 
@@ -907,6 +944,96 @@ impl Database {
             return Ok(None);
         }
         self.get_user(id).await
+    }
+
+    // ── OAuth account helpers ────────────────────────────────────────
+
+    pub async fn get_user_by_email(&self, email: &str) -> Result<Option<User>, sqlx::Error> {
+        let row = sqlx::query_as::<_, User>(
+            "SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at FROM users WHERE email = $1",
+        )
+        .bind(email)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn find_oauth_account(
+        &self,
+        provider: &str,
+        provider_user_id: &str,
+    ) -> Result<Option<OAuthAccount>, sqlx::Error> {
+        let row = sqlx::query_as::<_, OAuthAccount>(
+            "SELECT id, user_id, provider, provider_user_id, provider_username, provider_email, created_at FROM oauth_accounts WHERE provider = $1 AND provider_user_id = $2",
+        )
+        .bind(provider)
+        .bind(provider_user_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn create_oauth_account(
+        &self,
+        user_id: i64,
+        provider: &str,
+        provider_user_id: &str,
+        provider_username: Option<&str>,
+        provider_email: Option<&str>,
+    ) -> Result<OAuthAccount, sqlx::Error> {
+        let row = sqlx::query_as::<_, OAuthAccount>(
+            "INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_username, provider_email) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, provider, provider_user_id, provider_username, provider_email, created_at",
+        )
+        .bind(user_id)
+        .bind(provider)
+        .bind(provider_user_id)
+        .bind(provider_username)
+        .bind(provider_email)
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn create_user_oauth(
+        &self,
+        username: &str,
+        email: &str,
+        display_name: &str,
+        avatar_url: Option<&str>,
+    ) -> Result<User, sqlx::Error> {
+        let row = sqlx::query_as::<_, User>(
+            "INSERT INTO users (username, email, password_hash, display_name, avatar_url) VALUES ($1, $2, NULL, $3, $4) RETURNING id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at",
+        )
+        .bind(username)
+        .bind(email)
+        .bind(display_name)
+        .bind(avatar_url)
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn update_user_avatar(&self, user_id: i64, avatar_url: &str) -> Result<(), sqlx::Error> {
+        let sql = format!(
+            "UPDATE users SET avatar_url = $1, updated_at = {} WHERE id = $2",
+            self.now_expr()
+        );
+        sqlx::query(&sql)
+            .bind(avatar_url)
+            .bind(user_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn username_exists(&self, username: &str) -> Result<bool, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM users WHERE username = $1",
+        )
+        .bind(username)
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(row.0 > 0)
     }
 
     // ── Bot CRUD ──────────────────────────────────────────────────────
@@ -3342,5 +3469,164 @@ mod tests {
         let m4 = db.create_match("1v1", "default").await.unwrap();
         let no_tournament = db.get_tournament_for_match(m4.id).await.unwrap();
         assert!(no_tournament.is_none());
+    }
+
+    // ── OAuth account tests ─────────────────────────────────────────
+
+    #[tokio::test]
+    async fn test_oauth_account_crud() {
+        let db = test_db().await;
+        let user = db
+            .create_user("oauthuser", "oauth@test.com", "hash", "OAuth User")
+            .await
+            .unwrap();
+
+        // Create OAuth account
+        let oauth = db
+            .create_oauth_account(user.id, "github", "gh-12345", Some("octocat"), Some("octocat@gh.com"))
+            .await
+            .unwrap();
+        assert_eq!(oauth.user_id, user.id);
+        assert_eq!(oauth.provider, "github");
+        assert_eq!(oauth.provider_user_id, "gh-12345");
+        assert_eq!(oauth.provider_username, Some("octocat".to_string()));
+
+        // Find by provider + provider_user_id
+        let found = db.find_oauth_account("github", "gh-12345").await.unwrap();
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().user_id, user.id);
+
+        // Not found for wrong provider
+        let not_found = db.find_oauth_account("google", "gh-12345").await.unwrap();
+        assert!(not_found.is_none());
+
+        // Not found for wrong ID
+        let not_found = db.find_oauth_account("github", "wrong-id").await.unwrap();
+        assert!(not_found.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_oauth_account_unique_constraint() {
+        let db = test_db().await;
+        let user = db
+            .create_user("user1", "u1@test.com", "hash", "User 1")
+            .await
+            .unwrap();
+
+        db.create_oauth_account(user.id, "github", "gh-1", None, None)
+            .await
+            .unwrap();
+
+        // Duplicate provider + provider_user_id should fail
+        let result = db
+            .create_oauth_account(user.id, "github", "gh-1", None, None)
+            .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_oauth_account_multiple_providers() {
+        let db = test_db().await;
+        let user = db
+            .create_user("multi", "multi@test.com", "hash", "Multi")
+            .await
+            .unwrap();
+
+        // Link GitHub
+        db.create_oauth_account(user.id, "github", "gh-1", Some("multi_gh"), None)
+            .await
+            .unwrap();
+
+        // Link Google (same user, different provider)
+        db.create_oauth_account(user.id, "google", "goog-1", Some("multi_goog"), None)
+            .await
+            .unwrap();
+
+        // Both should be findable
+        assert!(db.find_oauth_account("github", "gh-1").await.unwrap().is_some());
+        assert!(db.find_oauth_account("google", "goog-1").await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn test_create_user_oauth_no_password() {
+        let db = test_db().await;
+        let user = db
+            .create_user_oauth("oauthonly", "oauth@test.com", "OAuth User", Some("https://avatar.com/pic.png"))
+            .await
+            .unwrap();
+
+        assert_eq!(user.username, "oauthonly");
+        assert_eq!(user.email, "oauth@test.com");
+        assert!(user.password_hash.is_none()); // no password for OAuth users
+        assert_eq!(user.avatar_url, Some("https://avatar.com/pic.png".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_get_user_by_email() {
+        let db = test_db().await;
+        db.create_user("emailuser", "find@me.com", "hash", "Find Me")
+            .await
+            .unwrap();
+
+        let found = db.get_user_by_email("find@me.com").await.unwrap();
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().username, "emailuser");
+
+        let not_found = db.get_user_by_email("missing@nowhere.com").await.unwrap();
+        assert!(not_found.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_update_user_avatar() {
+        let db = test_db().await;
+        let user = db
+            .create_user("avuser", "av@test.com", "hash", "Avatar User")
+            .await
+            .unwrap();
+        assert!(user.avatar_url.is_none());
+
+        db.update_user_avatar(user.id, "https://example.com/new.png")
+            .await
+            .unwrap();
+
+        let updated = db.get_user(user.id).await.unwrap().unwrap();
+        assert_eq!(updated.avatar_url, Some("https://example.com/new.png".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_username_exists() {
+        let db = test_db().await;
+        db.create_user("exists", "e@test.com", "hash", "Exists")
+            .await
+            .unwrap();
+
+        assert!(db.username_exists("exists").await.unwrap());
+        assert!(!db.username_exists("doesnotexist").await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_oauth_cascade_delete() {
+        let db = test_db().await;
+        let user = db
+            .create_user("delme", "del@test.com", "hash", "Delete Me")
+            .await
+            .unwrap();
+
+        db.create_oauth_account(user.id, "github", "gh-del", None, None)
+            .await
+            .unwrap();
+
+        // Verify it exists
+        assert!(db.find_oauth_account("github", "gh-del").await.unwrap().is_some());
+
+        // Delete the user - OAuth account should cascade
+        sqlx::query("DELETE FROM users WHERE id = $1")
+            .bind(user.id)
+            .execute(&db.pool)
+            .await
+            .unwrap();
+
+        // OAuth account should be gone
+        assert!(db.find_oauth_account("github", "gh-del").await.unwrap().is_none());
     }
 }

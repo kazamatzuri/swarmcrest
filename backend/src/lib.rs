@@ -6,6 +6,7 @@ pub mod elo;
 pub mod engine;
 pub mod llms_txt;
 pub mod metrics;
+pub mod oauth;
 pub mod queue;
 pub mod rate_limit;
 pub mod replay;
