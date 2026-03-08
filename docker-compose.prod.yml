@@ -3,30 +3,21 @@
 #   cp .env.example .env   # then fill in secrets
 #   docker compose -f docker-compose.prod.yml up -d
 #
-# Caddy handles TLS automatically via Let's Encrypt.
+# TLS is handled by the host's nginx reverse proxy.
+# See nginx/swarmcrest.conf for the site config.
 
 services:
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - backend
-    networks:
-      - swarmcrest-net
-
   backend:
     image: ghcr.io/kazamatzuri/swarmcrest:latest
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-swarmcrest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-swarmcrest}
       - JWT_SECRET=${JWT_SECRET}
@@ -97,8 +88,6 @@ services:
       - monitoring
 
 volumes:
-  caddy-data:
-  caddy-config:
   postgres-data:
   grafana-data:
 

@@ -63,4 +63,8 @@ jobs:
             cd ~/swarmcrest
             docker compose -f docker-compose.prod.yml pull backend
             docker compose -f docker-compose.prod.yml up -d --no-build
+            # Wait for backend to pass its Docker healthcheck
+            echo "Waiting for backend health..."
+            timeout 60 bash -c 'until docker inspect --format="{{.State.Health.Status}}" $(docker compose -f docker-compose.prod.yml ps -q backend) 2>/dev/null | grep -q healthy; do sleep 2; done'
+            echo "Backend is healthy"
             docker image prune -f
