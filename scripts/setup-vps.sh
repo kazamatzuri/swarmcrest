@@ -73,6 +73,10 @@ done
 NGINX_CONF="$PROJECT_DIR/nginx/swarmcrest.conf"
 if [[ -f "$NGINX_CONF" ]]; then
   info "Installing nginx site config..."
+
+  # Create webroot for ACME challenges
+  mkdir -p /var/www/certbot
+
   cp "$NGINX_CONF" /etc/nginx/sites-available/swarmcrest
   ln -sf /etc/nginx/sites-available/swarmcrest /etc/nginx/sites-enabled/swarmcrest
 
@@ -80,9 +84,16 @@ if [[ -f "$NGINX_CONF" ]]; then
     systemctl reload nginx
     info "Nginx config installed and loaded."
 
-    info "Requesting TLS certificate..."
-    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email || \
-      warn "Certbot failed — you may need to run it manually after DNS is set up."
+    info "Requesting TLS certificate via webroot..."
+    certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
+      --non-interactive --agree-tos --register-unsafely-without-email || \
+      warn "Certbot failed — check DNS A record points to this server."
+
+    # Let certbot's --nginx plugin wire the cert into the config
+    if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
+      certbot install --nginx -d "$DOMAIN" --non-interactive || \
+        warn "Certbot install failed — you may need to run: certbot --nginx -d $DOMAIN"
+    fi
   else
     warn "Nginx config test failed — check /etc/nginx/sites-available/swarmcrest"
   fi
@@ -96,7 +107,10 @@ info "Logging into GHCR (GitHub Container Registry)..."
 echo "  You need a GitHub PAT with read:packages scope."
 echo "  Create one at: https://github.com/settings/tokens"
 echo ""
-sudo -u "$DEPLOY_USER" docker login ghcr.io
+read -r -p "GitHub username: " GHCR_USER
+read -r -s -p "GitHub PAT: " GHCR_TOKEN
+echo ""
+echo "$GHCR_TOKEN" | sudo -u "$DEPLOY_USER" docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
 # ── 4. Backup cron ───────────────────────────────────────────────────
 
