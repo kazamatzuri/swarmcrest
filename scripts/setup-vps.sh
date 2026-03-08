@@ -71,40 +71,43 @@ for pkg in nginx certbot python3-certbot-nginx; do
 done
 
 NGINX_CONF="$PROJECT_DIR/nginx/swarmcrest.conf"
-if [[ -f "$NGINX_CONF" ]]; then
-  info "Installing nginx site config (HTTP-only, pre-TLS)..."
-  cp "$NGINX_CONF" /etc/nginx/sites-available/swarmcrest
-  ln -sf /etc/nginx/sites-available/swarmcrest /etc/nginx/sites-enabled/swarmcrest
+NGINX_INSTALLED="/etc/nginx/sites-available/swarmcrest"
 
-  # Verify config loads cleanly before reloading
+if [[ ! -f "$NGINX_CONF" ]]; then
+  error "nginx/swarmcrest.conf not found in repo."
+fi
+
+# Only install the base config if certbot hasn't already configured it
+if ! grep -q "ssl_certificate" "$NGINX_INSTALLED" 2>/dev/null; then
+  info "Installing nginx site config (HTTP-only, pre-TLS)..."
+  cp "$NGINX_CONF" "$NGINX_INSTALLED"
+  ln -sf "$NGINX_INSTALLED" /etc/nginx/sites-enabled/swarmcrest
+
   if ! nginx -t; then
-    error "Nginx config test failed — fix /etc/nginx/sites-available/swarmcrest before continuing."
+    error "Nginx config test failed — fix $NGINX_INSTALLED before continuing."
   fi
   systemctl reload nginx
-  info "Nginx config loaded. Verifying it responds..."
 
-  # Sanity check: make sure nginx is actually serving this domain on port 80
+  # Create webroot for ACME challenges
+  mkdir -p /var/www/certbot/.well-known/acme-challenge
+
+  # Sanity check: make sure nginx is reachable on port 80
   HTTP_STATUS=$(curl -so /dev/null -w "%{http_code}" "http://$DOMAIN/" 2>/dev/null || echo "000")
   if [[ "$HTTP_STATUS" == "000" ]]; then
     error "Cannot reach http://$DOMAIN/ — check DNS A record points to $(hostname -I | awk '{print $1}')"
   fi
   info "http://$DOMAIN/ returned HTTP $HTTP_STATUS — nginx is serving."
 
-  # Create webroot for ACME challenges (nginx serves this path from disk)
-  mkdir -p /var/www/certbot/.well-known/acme-challenge
-
   info "Requesting TLS certificate..."
-  # Step 1: get the cert via webroot (works even when backend is down)
   certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
     --non-interactive --agree-tos --register-unsafely-without-email || \
     error "Certbot failed. Check: DNS A record, firewall port 80, nginx config."
 
-  # Step 2: let certbot wire the cert into nginx config (adds 443 block + redirect)
-  certbot install --nginx -d "$DOMAIN" --non-interactive || \
+  certbot install --nginx --cert-name "$DOMAIN" -d "$DOMAIN" --non-interactive || \
     error "Certbot install failed."
   info "TLS certificate installed."
 else
-  error "nginx/swarmcrest.conf not found in repo."
+  info "Nginx already has TLS configured, skipping."
 fi
 
 # ── 3. GHCR login ────────────────────────────────────────────────────
