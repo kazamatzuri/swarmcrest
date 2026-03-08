@@ -61,6 +61,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd ~/swarmcrest
+            git pull --ff-only
             docker compose -f docker-compose.prod.yml pull backend
             docker compose -f docker-compose.prod.yml up -d --no-build
             # Wait for backend to pass its Docker healthcheck

@@ -1,74 +1,143 @@
 #!/usr/bin/env bash
-# First-time VPS setup for SwarmCrest production deployment.
+# VPS setup for SwarmCrest production deployment.
 #
-# Run on the VPS as root or with sudo:
-#   curl -fsSL <raw-github-url> | bash
-#   # or: scp scripts/setup-vps.sh user@vps: && ssh user@vps bash setup-vps.sh
+# Prerequisites (already done):
+#   - Docker installed, deploy user created with Docker access
+#   - SSH keys configured (CI key + GitHub deploy key)
+#   - Repo cloned to ~/swarmcrest
 #
-# What this does:
-#   1. Installs Docker + Docker Compose plugin
-#   2. Creates a deploy user with Docker access
-#   3. Sets up the project directory
-#   4. Configures daily database backups via cron
+# Run on the VPS as root:
+#   bash ~/swarmcrest/scripts/setup-vps.sh
 #
 # After running, you still need to:
-#   - Add the deploy user's SSH key to GitHub secrets (VPS_SSH_KEY)
-#   - Copy .env.example to ~/swarmcrest/.env and fill in secrets
-#   - Set up DNS A record pointing to this server
-#   - Log in to GHCR: docker login ghcr.io
+#   - Add GitHub repo secrets (printed at the end)
+#   - Fill in OAuth credentials in .env (when ready)
 
 set -euo pipefail
 
-DEPLOY_USER="${DEPLOY_USER:-deploy}"
+DEPLOY_USER="${DEPLOY_USER:-swarmcrest}"
 PROJECT_DIR="/home/$DEPLOY_USER/swarmcrest"
+DOMAIN="${DOMAIN:-swarmcrest.submerged-intelligence.de}"
+GITHUB_REPO="${GITHUB_REPO:-kazamatzuri/swarmcrest}"
 
-echo "[setup] Installing Docker..."
-if ! command -v docker &>/dev/null; then
-  curl -fsSL https://get.docker.com | sh
-fi
+info()  { echo -e "\n\033[1;34m[setup]\033[0m $*"; }
+warn()  { echo -e "\033[1;33m[warn]\033[0m $*"; }
+error() { echo -e "\033[1;31m[error]\033[0m $*" >&2; exit 1; }
 
-echo "[setup] Creating deploy user: $DEPLOY_USER"
-if ! id "$DEPLOY_USER" &>/dev/null; then
-  useradd -m -s /bin/bash "$DEPLOY_USER"
-  usermod -aG docker "$DEPLOY_USER"
-  echo "[setup] Generate an SSH key for CI/CD:"
-  echo "  sudo -u $DEPLOY_USER ssh-keygen -t ed25519 -f /home/$DEPLOY_USER/.ssh/id_ed25519 -N ''"
-  echo "  Then add the public key to /home/$DEPLOY_USER/.ssh/authorized_keys"
+[[ $EUID -eq 0 ]] || error "This script must be run as root."
+[[ -d "$PROJECT_DIR/.git" ]] || error "Repo not found at $PROJECT_DIR — clone it first."
+
+# ── 1. Create skeleton .env ──────────────────────────────────────────
+
+ENV_FILE="$PROJECT_DIR/.env"
+if [[ ! -f "$ENV_FILE" ]]; then
+  info "Creating .env with generated secrets..."
+  JWT_SECRET=$(openssl rand -base64 32)
+  PG_PASSWORD=$(openssl rand -base64 24)
+
+  cat > "$ENV_FILE" << EOF
+# SwarmCrest production environment — KEEP THIS SECRET
+DOMAIN=$DOMAIN
+POSTGRES_USER=swarmcrest
+POSTGRES_PASSWORD=$PG_PASSWORD
+POSTGRES_DB=swarmcrest
+JWT_SECRET=$JWT_SECRET
+RUST_LOG=info
+
+# OAuth (fill in when ready)
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Monitoring (optional)
+METRICS_TOKEN=
+GRAFANA_ADMIN_PASSWORD=
+EOF
+  chmod 600 "$ENV_FILE"
+  chown "$DEPLOY_USER:$DEPLOY_USER" "$ENV_FILE"
+  info "Generated random JWT_SECRET and POSTGRES_PASSWORD."
 else
-  usermod -aG docker "$DEPLOY_USER"
-  echo "[setup] User $DEPLOY_USER already exists, added to docker group"
+  info ".env already exists, not touching it."
 fi
 
-echo "[setup] Creating project directory..."
-sudo -u "$DEPLOY_USER" mkdir -p "$PROJECT_DIR"
+# ── 2. Nginx + TLS ───────────────────────────────────────────────────
 
-# Copy required compose and config files
-for file in docker-compose.prod.yml Caddyfile .env.example prometheus.yml scripts/backup-db.sh; do
-  if [ -f "$file" ]; then
-    dir=$(dirname "$PROJECT_DIR/$file")
-    sudo -u "$DEPLOY_USER" mkdir -p "$dir"
-    cp "$file" "$PROJECT_DIR/$file"
-    chown "$DEPLOY_USER:$DEPLOY_USER" "$PROJECT_DIR/$file"
+for pkg in nginx certbot python3-certbot-nginx; do
+  if ! dpkg -s "$pkg" &>/dev/null 2>&1; then
+    info "Installing $pkg..."
+    apt-get update -qq && apt-get install -y -qq "$pkg"
   fi
 done
 
-# Copy grafana provisioning if present
-if [ -d "grafana" ]; then
-  cp -r grafana "$PROJECT_DIR/"
-  chown -R "$DEPLOY_USER:$DEPLOY_USER" "$PROJECT_DIR/grafana"
+NGINX_CONF="$PROJECT_DIR/nginx/swarmcrest.conf"
+if [[ -f "$NGINX_CONF" ]]; then
+  info "Installing nginx site config..."
+  cp "$NGINX_CONF" /etc/nginx/sites-available/swarmcrest
+  ln -sf /etc/nginx/sites-available/swarmcrest /etc/nginx/sites-enabled/swarmcrest
+
+  if nginx -t 2>/dev/null; then
+    systemctl reload nginx
+    info "Nginx config installed and loaded."
+
+    info "Requesting TLS certificate..."
+    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email || \
+      warn "Certbot failed — you may need to run it manually after DNS is set up."
+  else
+    warn "Nginx config test failed — check /etc/nginx/sites-available/swarmcrest"
+  fi
+else
+  error "nginx/swarmcrest.conf not found in repo."
 fi
 
-chmod +x "$PROJECT_DIR/scripts/backup-db.sh" 2>/dev/null || true
+# ── 3. GHCR login ────────────────────────────────────────────────────
 
-echo "[setup] Installing daily backup cron job..."
-CRON_LINE="0 3 * * * $PROJECT_DIR/scripts/backup-db.sh >> /var/log/swarmcrest-backup.log 2>&1"
-(sudo -u "$DEPLOY_USER" crontab -l 2>/dev/null | grep -v backup-db.sh; echo "$CRON_LINE") | sudo -u "$DEPLOY_USER" crontab -
+info "Logging into GHCR (GitHub Container Registry)..."
+echo "  You need a GitHub PAT with read:packages scope."
+echo "  Create one at: https://github.com/settings/tokens"
+echo ""
+sudo -u "$DEPLOY_USER" docker login ghcr.io
+
+# ── 4. Backup cron ───────────────────────────────────────────────────
+
+BACKUP_DIR="/home/$DEPLOY_USER/backups"
+sudo -u "$DEPLOY_USER" mkdir -p "$BACKUP_DIR"
+
+BACKUP_SCRIPT="$PROJECT_DIR/scripts/backup-db.sh"
+if [[ -f "$BACKUP_SCRIPT" ]]; then
+  chmod +x "$BACKUP_SCRIPT"
+  CRON_LINE="0 3 * * * $BACKUP_SCRIPT >> /var/log/swarmcrest-backup.log 2>&1"
+  (sudo -u "$DEPLOY_USER" crontab -l 2>/dev/null | grep -v backup-db.sh; echo "$CRON_LINE") \
+    | sudo -u "$DEPLOY_USER" crontab -
+  info "Daily backup cron installed (03:00)."
+fi
+
+# ── Done ──────────────────────────────────────────────────────────────
+
+CI_KEY="/home/$DEPLOY_USER/.ssh/ci_ed25519"
 
 echo ""
-echo "[setup] Done! Next steps:"
-echo "  1. cp $PROJECT_DIR/.env.example $PROJECT_DIR/.env"
-echo "  2. Edit $PROJECT_DIR/.env with real secrets"
-echo "  3. Log in to GHCR: sudo -u $DEPLOY_USER docker login ghcr.io"
-echo "  4. Add GitHub secrets: VPS_HOST, VPS_USER=$DEPLOY_USER, VPS_SSH_KEY"
-echo "  5. Push to master to trigger first deploy, or manually:"
-echo "     cd $PROJECT_DIR && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"
+echo "============================================="
+echo "  Setup complete!"
+echo "============================================="
+echo ""
+echo "Add these GitHub repo secrets:"
+echo "  https://github.com/$GITHUB_REPO/settings/secrets/actions"
+echo ""
+echo "  VPS_HOST     = $(hostname -I | awk '{print $1}')"
+echo "  VPS_USER     = $DEPLOY_USER"
+if [[ -f "$CI_KEY" ]]; then
+  echo "  VPS_SSH_KEY  = (contents of $CI_KEY)"
+  echo ""
+  echo "To show the private key:"
+  echo "  cat $CI_KEY"
+else
+  echo "  VPS_SSH_KEY  = (your CI deploy private key)"
+fi
+echo ""
+echo "Edit secrets in: $ENV_FILE"
+echo ""
+echo "First deploy (manual):"
+echo "  sudo -u $DEPLOY_USER bash -c 'cd $PROJECT_DIR && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d'"
+echo ""
+echo "After that, every push to master triggers automatic deployment."
