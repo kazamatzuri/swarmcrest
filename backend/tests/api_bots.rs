@@ -126,11 +126,7 @@ async fn test_list_bots() {
     assert_eq!(resp.status(), StatusCode::CREATED);
 
     // List bots (owned by the local user).
-    let resp = app
-        .clone()
-        .oneshot(get_request("/api/bots"))
-        .await
-        .unwrap();
+    let resp = app.clone().oneshot(get_request("/api/bots")).await.unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
     let body = body_json(resp).await;
     let bots = body.as_array().expect("expected an array");
@@ -162,10 +158,7 @@ async fn test_get_bot() {
 #[tokio::test]
 async fn test_get_bot_not_found() {
     let app = test_app().await;
-    let resp = app
-        .oneshot(get_request("/api/bots/99999"))
-        .await
-        .unwrap();
+    let resp = app.oneshot(get_request("/api/bots/99999")).await.unwrap();
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 }
 
@@ -198,10 +191,7 @@ async fn test_update_bot() {
 async fn test_update_bot_not_found() {
     let app = test_app().await;
     let resp = app
-        .oneshot(put_json(
-            "/api/bots/99999",
-            &json!({"name": "Whatever"}),
-        ))
+        .oneshot(put_json("/api/bots/99999", &json!({"name": "Whatever"})))
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);

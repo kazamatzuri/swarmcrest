@@ -164,12 +164,7 @@ impl IpRateLimiter {
 
     /// Check if the IP is within the rate limit.
     /// Returns Ok(()) if allowed, Err with message if rate limited.
-    pub fn check(
-        &self,
-        ip: IpAddr,
-        max_requests: usize,
-        window: Duration,
-    ) -> Result<(), String> {
+    pub fn check(&self, ip: IpAddr, max_requests: usize, window: Duration) -> Result<(), String> {
         if crate::config::is_local_mode() {
             return Ok(());
         }

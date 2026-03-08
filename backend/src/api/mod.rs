@@ -439,11 +439,7 @@ async fn create_bot_version(
         Ok(None) => return json_error(StatusCode::NOT_FOUND, "Bot not found").into_response(),
         Err(e) => return internal_error(e).into_response(),
     }
-    match state
-        .db
-        .create_bot_version(bot_id, &req.code)
-        .await
-    {
+    match state.db.create_bot_version(bot_id, &req.code).await {
         Ok(version) => {
             metrics::BOT_SUBMISSIONS_TOTAL.inc();
             (StatusCode::CREATED, Json(json!(version))).into_response()
@@ -843,8 +839,10 @@ async fn get_tournament_matches(
     match state.db.get_tournament_matches_detail(tournament_id).await {
         Ok(details) => {
             // Group by round
-            let mut rounds_map: std::collections::BTreeMap<i32, Vec<&crate::db::TournamentMatchDetail>> =
-                std::collections::BTreeMap::new();
+            let mut rounds_map: std::collections::BTreeMap<
+                i32,
+                Vec<&crate::db::TournamentMatchDetail>,
+            > = std::collections::BTreeMap::new();
             for d in &details {
                 rounds_map.entry(d.round).or_default().push(d);
             }
@@ -1005,16 +1003,26 @@ async fn list_maps(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 /// Resolve an optional map name to a World.
-pub fn resolve_map(maps_dir: &std::path::Path, map: &Option<String>, map_params: Option<&MapParamsRequest>) -> Result<World, String> {
+pub fn resolve_map(
+    maps_dir: &std::path::Path,
+    map: &Option<String>,
+    map_params: Option<&MapParamsRequest>,
+) -> Result<World, String> {
     use crate::engine::world::RandomMapParams;
     use rand::seq::SliceRandom;
     match map.as_deref() {
         None | Some("random") | Some("default") => {
             let mut params = RandomMapParams::default();
             if let Some(mp) = map_params {
-                if let Some(w) = mp.width { params.width = w.clamp(20, 150); }
-                if let Some(h) = mp.height { params.height = h.clamp(20, 150); }
-                if let Some(f) = mp.num_food_spots { params.num_food_spots = f.clamp(1, 200); }
+                if let Some(w) = mp.width {
+                    params.width = w.clamp(20, 150);
+                }
+                if let Some(h) = mp.height {
+                    params.height = h.clamp(20, 150);
+                }
+                if let Some(f) = mp.num_food_spots {
+                    params.num_food_spots = f.clamp(1, 200);
+                }
             }
             Ok(World::generate_random(params))
         }
@@ -1073,10 +1081,7 @@ async fn leaderboard_2v2(
 
 // ── Lua validation handler ────────────────────────────────────────────
 
-async fn validate_lua(
-    _auth: AuthUser,
-    Json(req): Json<ValidateLuaRequest>,
-) -> impl IntoResponse {
+async fn validate_lua(_auth: AuthUser, Json(req): Json<ValidateLuaRequest>) -> impl IntoResponse {
     let result = tokio::task::spawn_blocking(move || {
         let lua = mlua::Lua::new();
         match lua.load(&req.code).set_name("user_bot").into_function() {
@@ -1114,10 +1119,7 @@ async fn list_active_games(State(state): State<AppState>) -> impl IntoResponse {
 
 // ── Notification handlers ────────────────────────────────────────────
 
-async fn list_notifications(
-    State(state): State<AppState>,
-    auth: AuthUser,
-) -> impl IntoResponse {
+async fn list_notifications(State(state): State<AppState>, auth: AuthUser) -> impl IntoResponse {
     match state.db.list_recent_notifications(auth.0.sub, 20).await {
         Ok(notifications) => {
             let unread_count = state
@@ -1145,9 +1147,7 @@ async fn mark_notification_read(
 ) -> impl IntoResponse {
     match state.db.mark_notification_read(id, auth.0.sub).await {
         Ok(true) => (StatusCode::OK, Json(json!({ "ok": true }))).into_response(),
-        Ok(false) => {
-            json_error(StatusCode::NOT_FOUND, "Notification not found").into_response()
-        }
+        Ok(false) => json_error(StatusCode::NOT_FOUND, "Notification not found").into_response(),
         Err(e) => internal_error(e).into_response(),
     }
 }
@@ -1232,7 +1232,10 @@ async fn start_game(
 
     if headless {
         // Queue headless game via DB
-        let map_params_json = req.map_params.as_ref().and_then(|mp| serde_json::to_string(mp).ok());
+        let map_params_json = req
+            .map_params
+            .as_ref()
+            .and_then(|mp| serde_json::to_string(mp).ok());
         if let Err(e) = state
             .db
             .enqueue_game(m.id, req.map.as_deref(), 0, map_params_json.as_deref())
@@ -1512,7 +1515,10 @@ async fn create_challenge(
                 .into_response();
         }
 
-        let queue_depth = state.db.queue_status().await
+        let queue_depth = state
+            .db
+            .queue_status()
+            .await
             .map(|s| s.pending)
             .unwrap_or(0);
 
@@ -1550,12 +1556,8 @@ async fn create_challenge(
 
     // Build completion callback for Elo, replay, and match finishing
     let version_ids: Vec<i64> = vec![req.bot_version_id, req.opponent_bot_version_id];
-    let on_complete = build_game_completion_callback(
-        state.db.clone(),
-        m.id,
-        version_ids.clone(),
-        format.clone(),
-    );
+    let on_complete =
+        build_game_completion_callback(state.db.clone(), m.id, version_ids.clone(), format.clone());
 
     match state.game_server.start_game_with_callback(
         world,
@@ -1926,10 +1928,7 @@ async fn create_feedback(
     }
 }
 
-async fn list_feedback(
-    State(state): State<AppState>,
-    auth: AuthUser,
-) -> impl IntoResponse {
+async fn list_feedback(State(state): State<AppState>, auth: AuthUser) -> impl IntoResponse {
     if auth.0.role != "admin" {
         return json_error(StatusCode::FORBIDDEN, "Admin access required").into_response();
     }

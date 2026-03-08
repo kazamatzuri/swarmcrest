@@ -45,7 +45,10 @@ pub async fn ws_game(
             None => false,
         };
         if !valid {
-            return (StatusCode::UNAUTHORIZED, "Valid token required for WebSocket connection")
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Valid token required for WebSocket connection",
+            )
                 .into_response();
         }
     }

@@ -54,8 +54,13 @@ pub fn spawn_queue_worker(
             let participants = match db.get_match_participants(job.match_id).await {
                 Ok(p) => p,
                 Err(e) => {
-                    tracing::error!("Queue worker: failed to load participants for match {}: {e}", job.match_id);
-                    let _ = db.fail_queue_job(job.id, &format!("Failed to load participants: {e}")).await;
+                    tracing::error!(
+                        "Queue worker: failed to load participants for match {}: {e}",
+                        job.match_id
+                    );
+                    let _ = db
+                        .fail_queue_job(job.id, &format!("Failed to load participants: {e}"))
+                        .await;
                     let _ = db.finish_match(job.match_id, None).await;
                     continue;
                 }
@@ -69,11 +74,11 @@ pub fn spawn_queue_worker(
             for p in &participants {
                 match db.get_bot_version_by_id(p.bot_version_id).await {
                     Ok(Some(v)) => {
-                        let name = p.bot_name.clone().unwrap_or_else(|| format!("Bot v{}", v.version));
-                        players.push(PlayerEntry {
-                            name,
-                            code: v.code,
-                        });
+                        let name = p
+                            .bot_name
+                            .clone()
+                            .unwrap_or_else(|| format!("Bot v{}", v.version));
+                        players.push(PlayerEntry { name, code: v.code });
                         version_ids.push(p.bot_version_id);
                     }
                     Ok(None) => {
@@ -81,7 +86,10 @@ pub fn spawn_queue_worker(
                         break;
                     }
                     Err(e) => {
-                        load_error = Some(format!("DB error loading version {}: {e}", p.bot_version_id));
+                        load_error = Some(format!(
+                            "DB error loading version {}: {e}",
+                            p.bot_version_id
+                        ));
                         break;
                     }
                 }
@@ -95,14 +103,17 @@ pub fn spawn_queue_worker(
             }
 
             // Resolve map (deserialize map_params if present)
-            let map_params: Option<crate::api::MapParamsRequest> = job.map_params
+            let map_params: Option<crate::api::MapParamsRequest> = job
+                .map_params
                 .as_deref()
                 .and_then(|s| serde_json::from_str(s).ok());
             let world = match resolve_map(&maps_dir, &job.map, map_params.as_ref()) {
                 Ok(w) => w,
                 Err(e) => {
                     tracing::error!("Queue worker: invalid map for match {}: {e}", job.match_id);
-                    let _ = db.fail_queue_job(job.id, &format!("Invalid map: {e}")).await;
+                    let _ = db
+                        .fail_queue_job(job.id, &format!("Invalid map: {e}"))
+                        .await;
                     let _ = db.finish_match(job.match_id, None).await;
                     continue;
                 }
@@ -153,9 +164,7 @@ pub fn spawn_queue_worker(
 
             if !spawned {
                 tracing::warn!("Worker pool rejected game for match {match_id}");
-                let _ = db
-                    .fail_queue_job(job_id, "Worker pool at capacity")
-                    .await;
+                let _ = db.fail_queue_job(job_id, "Worker pool at capacity").await;
             } else {
                 // Update queue depth metric
                 if let Ok(status) = db.queue_status().await {
@@ -250,7 +259,13 @@ pub async fn run_game_completion(
         let won = winner_version_id == Some(p.bot_version_id);
         let lost = winner_version_id.is_some() && !won;
         let draw = winner_version_id.is_none();
-        let placement = if won { 1 } else if lost { 2 } else { 0 };
+        let placement = if won {
+            1
+        } else if lost {
+            2
+        } else {
+            0
+        };
 
         let _ = db
             .update_match_participant(
@@ -304,18 +319,10 @@ pub async fn run_game_completion(
             crate::elo::Outcome::Draw => crate::elo::Outcome::Draw,
         };
 
-        let new_elo_0 = crate::elo::calculate_new_rating(
-            v0.elo_1v1,
-            v1.elo_1v1,
-            outcome_0,
-            v0.games_played,
-        );
-        let new_elo_1 = crate::elo::calculate_new_rating(
-            v1.elo_1v1,
-            v0.elo_1v1,
-            outcome_1,
-            v1.games_played,
-        );
+        let new_elo_0 =
+            crate::elo::calculate_new_rating(v0.elo_1v1, v1.elo_1v1, outcome_0, v0.games_played);
+        let new_elo_1 =
+            crate::elo::calculate_new_rating(v1.elo_1v1, v0.elo_1v1, outcome_1, v1.games_played);
 
         let ps0 = result
             .player_scores
@@ -429,10 +436,9 @@ pub async fn run_game_completion(
 
             if all_finished {
                 if let Ok(Some(tournament)) = db.get_tournament(tournament_id).await {
-                    let fmt = crate::tournament::TournamentFormat::from_str_name(
-                        &tournament.format,
-                    )
-                    .unwrap_or(crate::tournament::TournamentFormat::RoundRobin);
+                    let fmt =
+                        crate::tournament::TournamentFormat::from_str_name(&tournament.format)
+                            .unwrap_or(crate::tournament::TournamentFormat::RoundRobin);
                     let n_participants = db
                         .list_tournament_entries(tournament_id)
                         .await
@@ -450,9 +456,7 @@ pub async fn run_game_completion(
                         )
                         .await;
                     } else {
-                        let _ = db
-                            .update_tournament_status(tournament_id, "finished")
-                            .await;
+                        let _ = db.update_tournament_status(tournament_id, "finished").await;
                     }
                 }
             }

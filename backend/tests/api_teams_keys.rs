@@ -380,7 +380,10 @@ async fn test_list_api_keys() {
     assert!(!keys.is_empty());
     // Tokens should NOT be included in list responses
     for key in keys {
-        assert!(key.get("token").is_none(), "token should not be in list response");
+        assert!(
+            key.get("token").is_none(),
+            "token should not be in list response"
+        );
     }
 }
 
@@ -514,7 +517,10 @@ async fn test_validate_lua_invalid() {
     assert_eq!(resp.status(), StatusCode::OK);
     let body = body_json(resp).await;
     assert_eq!(body["valid"], false);
-    assert!(body.get("error").is_some(), "response should contain an error field");
+    assert!(
+        body.get("error").is_some(),
+        "response should contain an error field"
+    );
 }
 
 // ── Misc tests ───────────────────────────────────────────────────────

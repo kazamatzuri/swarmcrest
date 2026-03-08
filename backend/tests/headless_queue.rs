@@ -90,7 +90,11 @@ fn test_headless_determines_winner() {
     assert!(result.tick_count > 0);
 
     // Verify player_scores have correct bot_version_ids
-    let version_ids: Vec<i64> = result.player_scores.iter().map(|s| s.bot_version_id).collect();
+    let version_ids: Vec<i64> = result
+        .player_scores
+        .iter()
+        .map(|s| s.bot_version_id)
+        .collect();
     assert!(version_ids.contains(&10));
     assert!(version_ids.contains(&20));
 }
@@ -152,7 +156,10 @@ async fn test_enqueue_and_claim_job() {
     let m = db.create_match("1v1", "random").await.unwrap();
 
     // Enqueue
-    let job = db.enqueue_game(m.id, Some("random"), 0, None).await.unwrap();
+    let job = db
+        .enqueue_game(m.id, Some("random"), 0, None)
+        .await
+        .unwrap();
     assert_eq!(job.match_id, m.id);
     assert_eq!(job.status, "pending");
     assert_eq!(job.priority, 0);
@@ -313,13 +320,10 @@ async fn test_worker_pool_runs_game_to_completion() {
     assert!(spawned);
 
     // Wait for the game to complete
-    let result = tokio::time::timeout(
-        std::time::Duration::from_secs(30),
-        rx,
-    )
-    .await
-    .expect("Game timed out")
-    .expect("Channel closed");
+    let result = tokio::time::timeout(std::time::Duration::from_secs(30), rx)
+        .await
+        .expect("Game timed out")
+        .expect("Channel closed");
 
     assert_eq!(result.match_id, Some(1));
     assert!(result.tick_count > 0);
@@ -397,13 +401,21 @@ fn test_worker_pool_rejects_when_at_capacity() {
     let spawned = pool.spawn_game(
         create_test_world(),
         vec![
-            PlayerEntry { name: "A".into(), code: code.into() },
-            PlayerEntry { name: "B".into(), code: code.into() },
+            PlayerEntry {
+                name: "A".into(),
+                code: code.into(),
+            },
+            PlayerEntry {
+                name: "B".into(),
+                code: code.into(),
+            },
         ],
         100,
         Some(1),
         vec![1, 2],
-        move |r| { let _ = tx.send(r); },
+        move |r| {
+            let _ = tx.send(r);
+        },
     );
     assert!(!spawned, "Should reject when pool has 0 capacity");
 }
@@ -453,8 +465,15 @@ async fn test_end_to_end_enqueue_and_process() {
     let mut players = Vec::new();
     let mut version_ids = Vec::new();
     for p in &participants {
-        let v = db.get_bot_version_by_id(p.bot_version_id).await.unwrap().unwrap();
-        let name = p.bot_name.clone().unwrap_or_else(|| format!("Bot v{}", v.version));
+        let v = db
+            .get_bot_version_by_id(p.bot_version_id)
+            .await
+            .unwrap()
+            .unwrap();
+        let name = p
+            .bot_name
+            .clone()
+            .unwrap_or_else(|| format!("Bot v{}", v.version));
         players.push(PlayerEntry { name, code: v.code });
         version_ids.push(p.bot_version_id);
     }
@@ -467,14 +486,7 @@ async fn test_end_to_end_enqueue_and_process() {
     assert_eq!(result.player_scores.len(), 2);
 
     // Run game completion (save replay, finish match, update stats)
-    swarmcrest_backend::queue::run_game_completion(
-        &db,
-        m.id,
-        &version_ids,
-        "1v1",
-        &result,
-    )
-    .await;
+    swarmcrest_backend::queue::run_game_completion(&db, m.id, &version_ids, "1v1", &result).await;
 
     // Mark queue job complete
     db.complete_queue_job(claimed.id).await.unwrap();

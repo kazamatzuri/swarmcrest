@@ -231,9 +231,7 @@ mod tests {
         BOT_SUBMISSIONS_TOTAL.inc();
         BOT_VALIDATION_FAILURES_TOTAL.inc();
 
-        CREATURES_SPAWNED_TOTAL
-            .with_label_values(&["small"])
-            .inc();
+        CREATURES_SPAWNED_TOTAL.with_label_values(&["small"]).inc();
         CREATURES_KILLED_TOTAL.with_label_values(&["big"]).inc();
 
         GAME_TICK_DURATION_MS.observe(1.5);

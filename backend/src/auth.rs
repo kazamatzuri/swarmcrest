@@ -10,10 +10,10 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use std::net::SocketAddr;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use crate::db::Database;
@@ -24,9 +24,9 @@ use crate::db::Database;
 fn jwt_secret() -> Vec<u8> {
     match std::env::var("JWT_SECRET") {
         Ok(secret) => secret.into_bytes(),
-        Err(_) if crate::config::is_local_mode() => {
-            "swarmcrest-dev-secret-change-in-production".to_string().into_bytes()
-        }
+        Err(_) if crate::config::is_local_mode() => "swarmcrest-dev-secret-change-in-production"
+            .to_string()
+            .into_bytes(),
         Err(_) => panic!("JWT_SECRET environment variable must be set in production mode"),
     }
 }
@@ -524,10 +524,7 @@ pub async fn local_login(State(db): State<Arc<Database>>) -> impl IntoResponse {
     }
 
     // Find or use the local user
-    match db
-        .get_user_by_username(crate::config::LOCAL_USERNAME)
-        .await
-    {
+    match db.get_user_by_username(crate::config::LOCAL_USERNAME).await {
         Ok(Some(user)) => {
             let token = match create_token(user.id, &user.username, &user.role) {
                 Ok(t) => t,

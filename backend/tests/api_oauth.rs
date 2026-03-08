@@ -49,9 +49,18 @@ async fn test_app_no_oauth() -> Router {
     let oauth_state = Arc::new(swarmcrest_backend::oauth::OAuthState::new(&cfg, db));
 
     Router::new()
-        .route("/api/auth/providers", get(swarmcrest_backend::oauth::auth_providers))
-        .route("/api/auth/oauth/github", get(swarmcrest_backend::oauth::github_auth_start))
-        .route("/api/auth/oauth/google", get(swarmcrest_backend::oauth::google_auth_start))
+        .route(
+            "/api/auth/providers",
+            get(swarmcrest_backend::oauth::auth_providers),
+        )
+        .route(
+            "/api/auth/oauth/github",
+            get(swarmcrest_backend::oauth::github_auth_start),
+        )
+        .route(
+            "/api/auth/oauth/google",
+            get(swarmcrest_backend::oauth::google_auth_start),
+        )
         .with_state(oauth_state)
 }
 
@@ -92,9 +101,18 @@ async fn test_app_with_github() -> Router {
     let oauth_state = Arc::new(swarmcrest_backend::oauth::OAuthState::new(&cfg, db));
 
     Router::new()
-        .route("/api/auth/providers", get(swarmcrest_backend::oauth::auth_providers))
-        .route("/api/auth/oauth/github", get(swarmcrest_backend::oauth::github_auth_start))
-        .route("/api/auth/oauth/google", get(swarmcrest_backend::oauth::google_auth_start))
+        .route(
+            "/api/auth/providers",
+            get(swarmcrest_backend::oauth::auth_providers),
+        )
+        .route(
+            "/api/auth/oauth/github",
+            get(swarmcrest_backend::oauth::github_auth_start),
+        )
+        .route(
+            "/api/auth/oauth/google",
+            get(swarmcrest_backend::oauth::google_auth_start),
+        )
         .with_state(oauth_state)
 }
 
@@ -135,9 +153,18 @@ async fn test_app_with_both() -> Router {
     let oauth_state = Arc::new(swarmcrest_backend::oauth::OAuthState::new(&cfg, db));
 
     Router::new()
-        .route("/api/auth/providers", get(swarmcrest_backend::oauth::auth_providers))
-        .route("/api/auth/oauth/github", get(swarmcrest_backend::oauth::github_auth_start))
-        .route("/api/auth/oauth/google", get(swarmcrest_backend::oauth::google_auth_start))
+        .route(
+            "/api/auth/providers",
+            get(swarmcrest_backend::oauth::auth_providers),
+        )
+        .route(
+            "/api/auth/oauth/github",
+            get(swarmcrest_backend::oauth::github_auth_start),
+        )
+        .route(
+            "/api/auth/oauth/google",
+            get(swarmcrest_backend::oauth::google_auth_start),
+        )
         .with_state(oauth_state)
 }
 
@@ -161,7 +188,10 @@ async fn body_json(response: axum::http::Response<Body>) -> Value {
 #[tokio::test]
 async fn test_providers_none_configured() {
     let app = test_app_no_oauth().await;
-    let resp = app.oneshot(get_request("/api/auth/providers")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/providers"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = body_json(resp).await;
@@ -173,7 +203,10 @@ async fn test_providers_none_configured() {
 #[tokio::test]
 async fn test_providers_github_only() {
     let app = test_app_with_github().await;
-    let resp = app.oneshot(get_request("/api/auth/providers")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/providers"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = body_json(resp).await;
@@ -184,7 +217,10 @@ async fn test_providers_github_only() {
 #[tokio::test]
 async fn test_providers_both_configured() {
     let app = test_app_with_both().await;
-    let resp = app.oneshot(get_request("/api/auth/providers")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/providers"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = body_json(resp).await;
@@ -197,7 +233,10 @@ async fn test_providers_both_configured() {
 #[tokio::test]
 async fn test_github_auth_start_not_configured() {
     let app = test_app_no_oauth().await;
-    let resp = app.oneshot(get_request("/api/auth/oauth/github")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/oauth/github"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 
     let body = body_json(resp).await;
@@ -207,7 +246,10 @@ async fn test_github_auth_start_not_configured() {
 #[tokio::test]
 async fn test_github_auth_start_returns_url() {
     let app = test_app_with_github().await;
-    let resp = app.oneshot(get_request("/api/auth/oauth/github")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/oauth/github"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = body_json(resp).await;
@@ -218,7 +260,7 @@ async fn test_github_auth_start_returns_url() {
     assert!(url.contains("client_id=test-github-id"));
     assert!(url.contains("scope=user%3Aemail"));
     assert!(url.contains("state="));
-    assert!(url.contains("code_challenge="));        // PKCE
+    assert!(url.contains("code_challenge=")); // PKCE
     assert!(url.contains("code_challenge_method=S256")); // PKCE SHA256
 }
 
@@ -226,11 +268,18 @@ async fn test_github_auth_start_returns_url() {
 async fn test_github_auth_start_unique_states() {
     let app = test_app_with_github().await;
 
-    let resp1 = app.clone().oneshot(get_request("/api/auth/oauth/github")).await.unwrap();
+    let resp1 = app
+        .clone()
+        .oneshot(get_request("/api/auth/oauth/github"))
+        .await
+        .unwrap();
     let body1 = body_json(resp1).await;
     let url1 = body1["url"].as_str().unwrap().to_string();
 
-    let resp2 = app.oneshot(get_request("/api/auth/oauth/github")).await.unwrap();
+    let resp2 = app
+        .oneshot(get_request("/api/auth/oauth/github"))
+        .await
+        .unwrap();
     let body2 = body_json(resp2).await;
     let url2 = body2["url"].as_str().unwrap().to_string();
 
@@ -243,14 +292,20 @@ async fn test_github_auth_start_unique_states() {
 #[tokio::test]
 async fn test_google_auth_start_not_configured() {
     let app = test_app_no_oauth().await;
-    let resp = app.oneshot(get_request("/api/auth/oauth/google")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/oauth/google"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
 async fn test_google_auth_start_returns_url() {
     let app = test_app_with_both().await;
-    let resp = app.oneshot(get_request("/api/auth/oauth/google")).await.unwrap();
+    let resp = app
+        .oneshot(get_request("/api/auth/oauth/google"))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = body_json(resp).await;

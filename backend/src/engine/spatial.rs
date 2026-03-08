@@ -3,7 +3,6 @@
 /// Divides the world into cells and tracks which creatures are in each cell.
 /// This reduces nearest-enemy queries from O(n^2) to O(n * k) where k is
 /// the number of creatures in nearby cells.
-
 use super::config::TILE_SIZE;
 
 /// Size of each spatial grid cell in pixels. Using 2 tiles (512px) as cell size
@@ -54,7 +53,12 @@ impl SpatialGrid {
     pub fn insert(&mut self, id: u32, x: i32, y: i32, player_id: u32) {
         let (col, row) = self.cell_coords(x, y);
         let idx = row * self.cols + col;
-        self.cells[idx].push(SpatialEntry { id, x, y, player_id });
+        self.cells[idx].push(SpatialEntry {
+            id,
+            x,
+            y,
+            player_id,
+        });
     }
 
     /// Find the nearest enemy creature to the given position.

@@ -149,7 +149,10 @@ async fn test_create_challenge_headless() {
         "Expected 200 or 201, got {status}"
     );
     let body = body_json(resp).await;
-    assert!(body["match_id"].is_number(), "Expected match_id in response: {body}");
+    assert!(
+        body["match_id"].is_number(),
+        "Expected match_id in response: {body}"
+    );
     assert_eq!(body["status"], "queued");
 }
 
@@ -245,7 +248,10 @@ async fn test_get_match_after_challenge() {
     assert_eq!(resp.status(), StatusCode::OK);
     let body = body_json(resp).await;
     assert!(body["match"].is_object(), "Expected match object: {body}");
-    assert!(body["participants"].is_array(), "Expected participants array: {body}");
+    assert!(
+        body["participants"].is_array(),
+        "Expected participants array: {body}"
+    );
 }
 
 // ── Test: list matches after challenge ───────────────────────────────

@@ -340,7 +340,12 @@ impl Game {
             .push(GameEvent::CreatureSpawned { id, parent: -1 });
 
         // Broadcast spawn event
-        let player_name = self.player_names.borrow().get(&player_id).cloned().unwrap_or_default();
+        let player_name = self
+            .player_names
+            .borrow()
+            .get(&player_id)
+            .cloned()
+            .unwrap_or_default();
         self.broadcast_events.push(BroadcastEvent::Spawn {
             creature_id: id,
             player_id,
@@ -393,7 +398,12 @@ impl Game {
             });
 
         // Broadcast spawn event
-        let player_name = self.player_names.borrow().get(&player_id).cloned().unwrap_or_default();
+        let player_name = self
+            .player_names
+            .borrow()
+            .get(&player_id)
+            .cloned()
+            .unwrap_or_default();
         self.broadcast_events.push(BroadcastEvent::Spawn {
             creature_id: id,
             player_id,
@@ -465,8 +475,7 @@ impl Game {
                                 self.change_player_score(player_id, -8);
                                 self.change_player_score(killer_player_id, 15);
                             }
-                            (CREATURE_FLYER, CREATURE_SMALL)
-                            | (CREATURE_FLYER, CREATURE_BIG) => {
+                            (CREATURE_FLYER, CREATURE_SMALL) | (CREATURE_FLYER, CREATURE_BIG) => {
                                 self.change_player_score(player_id, -4);
                                 self.change_player_score(killer_player_id, 12);
                             }
@@ -1156,10 +1165,7 @@ impl Game {
 
     /// Compute a delta between the current snapshot and a previous one.
     /// Only includes creatures that changed or were added/removed.
-    pub fn compute_delta(
-        current: &GameSnapshot,
-        previous: &GameSnapshot,
-    ) -> GameSnapshotDelta {
+    pub fn compute_delta(current: &GameSnapshot, previous: &GameSnapshot) -> GameSnapshotDelta {
         use std::collections::HashMap;
 
         let prev_map: HashMap<u32, &CreatureSnapshot> =

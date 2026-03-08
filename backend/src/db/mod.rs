@@ -318,8 +318,8 @@ impl Database {
     }
 
     pub async fn new(database_url: &str) -> Result<Self, sqlx::Error> {
-        let is_postgres = database_url.starts_with("postgres://")
-            || database_url.starts_with("postgresql://");
+        let is_postgres =
+            database_url.starts_with("postgres://") || database_url.starts_with("postgresql://");
         // For SQLite in-memory databases, limit to 1 connection so all
         // queries share the same in-memory database.
         let is_memory = database_url.contains(":memory:");
@@ -342,7 +342,8 @@ impl Database {
     }
 
     async fn run_migrations_postgres(&self) -> Result<(), sqlx::Error> {
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS users (
                 id BIGSERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
@@ -355,9 +356,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 updated_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS bots (
                 id BIGSERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -368,9 +372,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 updated_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS bot_versions (
                 id BIGSERIAL PRIMARY KEY,
                 bot_id BIGINT NOT NULL REFERENCES bots(id) ON DELETE CASCADE,
@@ -395,9 +402,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 UNIQUE(bot_id, version)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS matches (
                 id BIGSERIAL PRIMARY KEY,
                 format TEXT NOT NULL DEFAULT '1v1',
@@ -407,9 +417,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 finished_at TEXT
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS match_participants (
                 id BIGSERIAL PRIMARY KEY,
                 match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
@@ -423,9 +436,12 @@ impl Database {
                 creatures_killed INTEGER NOT NULL DEFAULT 0,
                 creatures_lost INTEGER NOT NULL DEFAULT 0
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournaments (
                 id BIGSERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -437,18 +453,24 @@ impl Database {
                 total_rounds INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_entries (
                 id BIGSERIAL PRIMARY KEY,
                 tournament_id BIGINT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
                 bot_version_id BIGINT NOT NULL REFERENCES bot_versions(id),
                 slot_name TEXT NOT NULL DEFAULT ''
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_results (
                 id BIGSERIAL PRIMARY KEY,
                 tournament_id BIGINT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
@@ -460,27 +482,36 @@ impl Database {
                 creatures_lost INTEGER NOT NULL DEFAULT 0,
                 finished_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_matches (
                 id BIGSERIAL PRIMARY KEY,
                 tournament_id BIGINT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
                 match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
                 round INTEGER NOT NULL DEFAULT 1
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS teams (
                 id BIGSERIAL PRIMARY KEY,
                 owner_id BIGINT NOT NULL REFERENCES users(id),
                 name TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS team_versions (
                 id BIGSERIAL PRIMARY KEY,
                 team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
@@ -495,9 +526,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 UNIQUE(team_id, version)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS replays (
                 id BIGSERIAL PRIMARY KEY,
                 match_id BIGINT NOT NULL UNIQUE REFERENCES matches(id) ON DELETE CASCADE,
@@ -505,9 +539,12 @@ impl Database {
                 tick_count INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS api_tokens (
                 id BIGSERIAL PRIMARY KEY,
                 user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -517,9 +554,12 @@ impl Database {
                 last_used_at TEXT,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS notifications (
                 id BIGSERIAL PRIMARY KEY,
                 user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -530,9 +570,12 @@ impl Database {
                 read INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS feedback (
                 id BIGSERIAL PRIMARY KEY,
                 user_id BIGINT REFERENCES users(id),
@@ -540,9 +583,12 @@ impl Database {
                 description TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS game_queue (
                 id BIGSERIAL PRIMARY KEY,
                 match_id BIGINT NOT NULL REFERENCES matches(id),
@@ -559,17 +605,25 @@ impl Database {
                 completed_at TEXT,
                 created_at TEXT NOT NULL DEFAULT (now()::text)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE INDEX IF NOT EXISTS idx_game_queue_pending
             ON game_queue(status, priority DESC, created_at)
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Add map_params column to existing game_queue tables
-        let _ = self.exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT").await;
+        let _ = self
+            .exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT")
+            .await;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS oauth_accounts (
                 id BIGSERIAL PRIMARY KEY,
                 user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -580,13 +634,16 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (now()::text),
                 UNIQUE(provider, provider_user_id)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         Ok(())
     }
 
     async fn run_migrations_sqlite(&self) -> Result<(), sqlx::Error> {
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -599,9 +656,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 updated_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS bots (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -612,14 +672,23 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 updated_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Add columns to existing bots table if missing
-        let _ = self.exec("ALTER TABLE bots ADD COLUMN owner_id INTEGER REFERENCES users(id)").await;
-        let _ = self.exec("ALTER TABLE bots ADD COLUMN visibility TEXT NOT NULL DEFAULT 'public'").await;
-        let _ = self.exec("ALTER TABLE bots ADD COLUMN active_version_id INTEGER").await;
+        let _ = self
+            .exec("ALTER TABLE bots ADD COLUMN owner_id INTEGER REFERENCES users(id)")
+            .await;
+        let _ = self
+            .exec("ALTER TABLE bots ADD COLUMN visibility TEXT NOT NULL DEFAULT 'public'")
+            .await;
+        let _ = self
+            .exec("ALTER TABLE bots ADD COLUMN active_version_id INTEGER")
+            .await;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS bot_versions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 bot_id INTEGER NOT NULL REFERENCES bots(id) ON DELETE CASCADE,
@@ -644,7 +713,9 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 UNIQUE(bot_id, version)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Add new columns to existing bot_versions if missing
         for col in &[
@@ -664,10 +735,13 @@ impl Database {
             "creatures_lost INTEGER NOT NULL DEFAULT 0",
             "total_score INTEGER NOT NULL DEFAULT 0",
         ] {
-            let _ = self.exec(&format!("ALTER TABLE bot_versions ADD COLUMN {col}")).await;
+            let _ = self
+                .exec(&format!("ALTER TABLE bot_versions ADD COLUMN {col}"))
+                .await;
         }
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS matches (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 format TEXT NOT NULL DEFAULT '1v1',
@@ -677,9 +751,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 finished_at TEXT
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS match_participants (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
@@ -693,9 +770,12 @@ impl Database {
                 creatures_killed INTEGER NOT NULL DEFAULT 0,
                 creatures_lost INTEGER NOT NULL DEFAULT 0
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournaments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -704,7 +784,9 @@ impl Database {
                 config TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Add new columns to existing tournaments table if missing
         for col in &[
@@ -712,19 +794,25 @@ impl Database {
             "current_round INTEGER NOT NULL DEFAULT 0",
             "total_rounds INTEGER NOT NULL DEFAULT 1",
         ] {
-            let _ = self.exec(&format!("ALTER TABLE tournaments ADD COLUMN {col}")).await;
+            let _ = self
+                .exec(&format!("ALTER TABLE tournaments ADD COLUMN {col}"))
+                .await;
         }
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
                 bot_version_id INTEGER NOT NULL REFERENCES bot_versions(id),
                 slot_name TEXT NOT NULL DEFAULT ''
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_results (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
@@ -736,27 +824,36 @@ impl Database {
                 creatures_lost INTEGER NOT NULL DEFAULT 0,
                 finished_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS tournament_matches (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
                 match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
                 round INTEGER NOT NULL DEFAULT 1
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS teams (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 owner_id INTEGER NOT NULL REFERENCES users(id),
                 name TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS team_versions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
@@ -771,9 +868,12 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 UNIQUE(team_id, version)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS replays (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 match_id INTEGER NOT NULL UNIQUE REFERENCES matches(id) ON DELETE CASCADE,
@@ -781,9 +881,12 @@ impl Database {
                 tick_count INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS api_tokens (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -793,7 +896,9 @@ impl Database {
                 last_used_at TEXT,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Notifications table
         sqlx::query(
@@ -829,7 +934,8 @@ impl Database {
         .await?;
 
         // Game queue table
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS game_queue (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 match_id INTEGER NOT NULL REFERENCES matches(id),
@@ -846,17 +952,25 @@ impl Database {
                 completed_at TEXT,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE INDEX IF NOT EXISTS idx_game_queue_pending
             ON game_queue(status, priority DESC, created_at)
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         // Add map_params column to existing game_queue tables
-        let _ = self.exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT").await;
+        let _ = self
+            .exec("ALTER TABLE game_queue ADD COLUMN map_params TEXT")
+            .await;
 
-        self.exec(r#"
+        self.exec(
+            r#"
             CREATE TABLE IF NOT EXISTS oauth_accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -867,7 +981,9 @@ impl Database {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 UNIQUE(provider, provider_user_id)
             )
-        "#).await?;
+        "#,
+        )
+        .await?;
 
         Ok(())
     }
@@ -1013,7 +1129,11 @@ impl Database {
         Ok(row)
     }
 
-    pub async fn update_user_avatar(&self, user_id: i64, avatar_url: &str) -> Result<(), sqlx::Error> {
+    pub async fn update_user_avatar(
+        &self,
+        user_id: i64,
+        avatar_url: &str,
+    ) -> Result<(), sqlx::Error> {
         let sql = format!(
             "UPDATE users SET avatar_url = $1, updated_at = {} WHERE id = $2",
             self.now_expr()
@@ -1027,12 +1147,10 @@ impl Database {
     }
 
     pub async fn username_exists(&self, username: &str) -> Result<bool, sqlx::Error> {
-        let row: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM users WHERE username = $1",
-        )
-        .bind(username)
-        .fetch_one(&self.pool)
-        .await?;
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE username = $1")
+            .bind(username)
+            .fetch_one(&self.pool)
+            .await?;
         Ok(row.0 > 0)
     }
 
@@ -1311,11 +1429,12 @@ impl Database {
         version_id: i64,
         archived: bool,
     ) -> Result<bool, sqlx::Error> {
-        let result: AnyQueryResult = sqlx::query("UPDATE bot_versions SET is_archived = $1 WHERE id = $2")
-            .bind(archived as i32)
-            .bind(version_id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult =
+            sqlx::query("UPDATE bot_versions SET is_archived = $1 WHERE id = $2")
+                .bind(archived as i32)
+                .bind(version_id)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -1324,11 +1443,12 @@ impl Database {
         version_id: i64,
         faulty: bool,
     ) -> Result<bool, sqlx::Error> {
-        let result: AnyQueryResult = sqlx::query("UPDATE bot_versions SET is_faulty = $1 WHERE id = $2")
-            .bind(faulty as i32)
-            .bind(version_id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult =
+            sqlx::query("UPDATE bot_versions SET is_faulty = $1 WHERE id = $2")
+                .bind(faulty as i32)
+                .bind(version_id)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -1362,9 +1482,7 @@ impl Database {
             "UPDATE matches SET status = 'abandoned', finished_at = {} WHERE status = 'running'",
             self.now_expr()
         );
-        let result: AnyQueryResult = sqlx::query(&sql)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult = sqlx::query(&sql).execute(&self.pool).await?;
         Ok(result.rows_affected())
     }
 
@@ -1735,20 +1853,22 @@ impl Database {
         id: i64,
         status: &str,
     ) -> Result<bool, sqlx::Error> {
-        let result: AnyQueryResult = sqlx::query("UPDATE tournaments SET status = $1 WHERE id = $2")
-            .bind(status)
-            .bind(id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult =
+            sqlx::query("UPDATE tournaments SET status = $1 WHERE id = $2")
+                .bind(status)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
     pub async fn update_tournament_round(&self, id: i64, round: i32) -> Result<bool, sqlx::Error> {
-        let result: AnyQueryResult = sqlx::query("UPDATE tournaments SET current_round = $1 WHERE id = $2")
-            .bind(round)
-            .bind(id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult =
+            sqlx::query("UPDATE tournaments SET current_round = $1 WHERE id = $2")
+                .bind(round)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -2032,7 +2152,11 @@ impl Database {
         offset: i64,
     ) -> Result<Vec<LeaderboardEntry>, sqlx::Error> {
         // CAST AS REAL works on SQLite; PostgreSQL needs DOUBLE PRECISION
-        let cast_type = if self.is_postgres { "DOUBLE PRECISION" } else { "REAL" };
+        let cast_type = if self.is_postgres {
+            "DOUBLE PRECISION"
+        } else {
+            "REAL"
+        };
         let sql = format!(
             r#"
             SELECT
@@ -2070,7 +2194,11 @@ impl Database {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<LeaderboardEntry>, sqlx::Error> {
-        let cast_type = if self.is_postgres { "DOUBLE PRECISION" } else { "REAL" };
+        let cast_type = if self.is_postgres {
+            "DOUBLE PRECISION"
+        } else {
+            "REAL"
+        };
         let sql = format!(
             r#"
             SELECT
@@ -2214,7 +2342,11 @@ impl Database {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<LeaderboardEntry>, sqlx::Error> {
-        let cast_type = if self.is_postgres { "DOUBLE PRECISION" } else { "REAL" };
+        let cast_type = if self.is_postgres {
+            "DOUBLE PRECISION"
+        } else {
+            "REAL"
+        };
         let sql = format!(
             r#"
             SELECT
@@ -2279,11 +2411,12 @@ impl Database {
     }
 
     pub async fn delete_api_token(&self, id: i64, user_id: i64) -> Result<bool, sqlx::Error> {
-        let result: AnyQueryResult = sqlx::query("DELETE FROM api_tokens WHERE id = $1 AND user_id = $2")
-            .bind(id)
-            .bind(user_id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult =
+            sqlx::query("DELETE FROM api_tokens WHERE id = $1 AND user_id = $2")
+                .bind(id)
+                .bind(user_id)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -2305,10 +2438,7 @@ impl Database {
             "UPDATE api_tokens SET last_used_at = {} WHERE id = $1",
             self.now_expr()
         );
-        let result: AnyQueryResult = sqlx::query(&sql)
-            .bind(id)
-            .execute(&self.pool)
-            .await?;
+        let result: AnyQueryResult = sqlx::query(&sql).bind(id).execute(&self.pool).await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -2392,11 +2522,7 @@ impl Database {
         Ok(rows)
     }
 
-    pub async fn mark_notification_read(
-        &self,
-        id: i64,
-        user_id: i64,
-    ) -> Result<bool, sqlx::Error> {
+    pub async fn mark_notification_read(&self, id: i64, user_id: i64) -> Result<bool, sqlx::Error> {
         let result =
             sqlx::query("UPDATE notifications SET read = 1 WHERE id = $1 AND user_id = $2")
                 .bind(id)
@@ -2407,12 +2533,11 @@ impl Database {
     }
 
     pub async fn unread_notification_count(&self, user_id: i64) -> Result<i64, sqlx::Error> {
-        let row: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = 0",
-        )
-        .bind(user_id)
-        .fetch_one(&self.pool)
-        .await?;
+        let row: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND read = 0")
+                .bind(user_id)
+                .fetch_one(&self.pool)
+                .await?;
         Ok(row.0)
     }
 
@@ -2493,10 +2618,7 @@ impl Database {
     /// Atomically claim the next pending job for a worker.
     /// Uses advisory locking on PostgreSQL; on SQLite the single-writer
     /// serialization provides equivalent safety.
-    pub async fn claim_queue_job(
-        &self,
-        worker_id: &str,
-    ) -> Result<Option<QueueJob>, sqlx::Error> {
+    pub async fn claim_queue_job(&self, worker_id: &str) -> Result<Option<QueueJob>, sqlx::Error> {
         let now = self.now_expr();
         if self.is_postgres {
             // Use FOR UPDATE SKIP LOCKED for safe concurrent claiming
@@ -2551,11 +2673,7 @@ impl Database {
     }
 
     /// Mark a queue job as failed. If attempts < max_attempts, re-queue it as pending.
-    pub async fn fail_queue_job(
-        &self,
-        job_id: i64,
-        error: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn fail_queue_job(&self, job_id: i64, error: &str) -> Result<(), sqlx::Error> {
         // Increment attempts and set error message
         sqlx::query(
             r#"UPDATE game_queue
@@ -2591,11 +2709,10 @@ impl Database {
             status: String,
             cnt: i64,
         }
-        let rows: Vec<StatusCount> = sqlx::query_as(
-            "SELECT status, COUNT(*) as cnt FROM game_queue GROUP BY status",
-        )
-        .fetch_all(&self.pool)
-        .await?;
+        let rows: Vec<StatusCount> =
+            sqlx::query_as("SELECT status, COUNT(*) as cnt FROM game_queue GROUP BY status")
+                .fetch_all(&self.pool)
+                .await?;
 
         let mut pending = 0i64;
         let mut claimed = 0i64;
@@ -2766,18 +2883,11 @@ mod tests {
 
         let bot = db.create_bot("VersionBot", "", None).await.unwrap();
 
-        let v1 = db
-            .create_bot_version(bot.id, "print('v1')")
-            .await
-            .unwrap();
+        let v1 = db.create_bot_version(bot.id, "print('v1')").await.unwrap();
         assert_eq!(v1.version, 1);
         assert_eq!(v1.code, "print('v1')");
 
-
-        let v2 = db
-            .create_bot_version(bot.id, "print('v2')")
-            .await
-            .unwrap();
+        let v2 = db.create_bot_version(bot.id, "print('v2')").await.unwrap();
         assert_eq!(v2.version, 2);
 
         let versions = db.list_bot_versions(bot.id).await.unwrap();
@@ -2989,14 +3099,8 @@ mod tests {
         // Create bots and versions for the team
         let bot_a = db.create_bot("BotA", "", Some(user.id)).await.unwrap();
         let bot_b = db.create_bot("BotB", "", Some(user.id)).await.unwrap();
-        let va = db
-            .create_bot_version(bot_a.id, "code_a")
-            .await
-            .unwrap();
-        let vb = db
-            .create_bot_version(bot_b.id, "code_b")
-            .await
-            .unwrap();
+        let va = db.create_bot_version(bot_a.id, "code_a").await.unwrap();
+        let vb = db.create_bot_version(bot_b.id, "code_b").await.unwrap();
 
         let tv1 = db.create_team_version(team.id, va.id, vb.id).await.unwrap();
         assert_eq!(tv1.version, 1);
@@ -3105,20 +3209,14 @@ mod tests {
 
         // Create two bots with different elo ratings
         let bot_a = db.create_bot("BotHigh", "", Some(user.id)).await.unwrap();
-        let va = db
-            .create_bot_version(bot_a.id, "code_a")
-            .await
-            .unwrap();
+        let va = db.create_bot_version(bot_a.id, "code_a").await.unwrap();
         db.update_version_elo(va.id, 1600).await.unwrap();
         db.update_version_stats(va.id, true, false, false, 200, 10, 5, 3)
             .await
             .unwrap();
 
         let bot_b = db.create_bot("BotLow", "", Some(user.id)).await.unwrap();
-        let vb = db
-            .create_bot_version(bot_b.id, "code_b")
-            .await
-            .unwrap();
+        let vb = db.create_bot_version(bot_b.id, "code_b").await.unwrap();
         db.update_version_elo(vb.id, 1520).await.unwrap();
         db.update_version_stats(vb.id, true, false, false, 100, 5, 2, 1)
             .await
@@ -3146,10 +3244,7 @@ mod tests {
 
         // Bot with games played (should appear)
         let bot_active = db.create_bot("ActiveBot", "", Some(user.id)).await.unwrap();
-        let v_active = db
-            .create_bot_version(bot_active.id, "code")
-            .await
-            .unwrap();
+        let v_active = db.create_bot_version(bot_active.id, "code").await.unwrap();
         db.update_version_elo(v_active.id, 1550).await.unwrap();
         db.update_version_stats(v_active.id, true, false, false, 100, 5, 3, 2)
             .await
@@ -3172,10 +3267,7 @@ mod tests {
 
         // Bot with zero games (should NOT appear)
         let bot_zero = db.create_bot("ZeroBot", "", Some(user.id)).await.unwrap();
-        let _v_zero = db
-            .create_bot_version(bot_zero.id, "code")
-            .await
-            .unwrap();
+        let _v_zero = db.create_bot_version(bot_zero.id, "code").await.unwrap();
 
         let leaderboard = db.leaderboard_1v1(50, 0).await.unwrap();
         assert_eq!(leaderboard.len(), 1);
@@ -3297,15 +3389,9 @@ mod tests {
 
         // Create bots and versions
         let bot_a = db.create_bot("StandingsA", "", None).await.unwrap();
-        let va = db
-            .create_bot_version(bot_a.id, "code_a")
-            .await
-            .unwrap();
+        let va = db.create_bot_version(bot_a.id, "code_a").await.unwrap();
         let bot_b = db.create_bot("StandingsB", "", None).await.unwrap();
-        let vb = db
-            .create_bot_version(bot_b.id, "code_b")
-            .await
-            .unwrap();
+        let vb = db.create_bot_version(bot_b.id, "code_b").await.unwrap();
 
         // Create tournament
         let t = db
@@ -3342,10 +3428,7 @@ mod tests {
         let bot = db.create_bot("EloResetBot", "", None).await.unwrap();
 
         // First version should have default 1500 Elo
-        let v1 = db
-            .create_bot_version(bot.id, "print('v1')")
-            .await
-            .unwrap();
+        let v1 = db.create_bot_version(bot.id, "print('v1')").await.unwrap();
         assert_eq!(v1.elo_rating, 1500);
         assert_eq!(v1.elo_1v1, 1500);
 
@@ -3353,10 +3436,7 @@ mod tests {
         db.update_version_elo(v1.id, 1700).await.unwrap();
 
         // Second version should have soft reset: (1700 + 1500) / 2 = 1600
-        let v2 = db
-            .create_bot_version(bot.id, "print('v2')")
-            .await
-            .unwrap();
+        let v2 = db.create_bot_version(bot.id, "print('v2')").await.unwrap();
         assert_eq!(v2.version, 2);
         assert_eq!(v2.elo_rating, 1600);
         assert_eq!(v2.elo_1v1, 1600);
@@ -3366,10 +3446,7 @@ mod tests {
         db.update_version_elo(v2.id, 1400).await.unwrap();
 
         // Third version: (1400 + 1500) / 2 = 1450
-        let v3 = db
-            .create_bot_version(bot.id, "print('v3')")
-            .await
-            .unwrap();
+        let v3 = db.create_bot_version(bot.id, "print('v3')").await.unwrap();
         assert_eq!(v3.version, 3);
         assert_eq!(v3.elo_rating, 1450);
 
@@ -3483,7 +3560,13 @@ mod tests {
 
         // Create OAuth account
         let oauth = db
-            .create_oauth_account(user.id, "github", "gh-12345", Some("octocat"), Some("octocat@gh.com"))
+            .create_oauth_account(
+                user.id,
+                "github",
+                "gh-12345",
+                Some("octocat"),
+                Some("octocat@gh.com"),
+            )
             .await
             .unwrap();
         assert_eq!(oauth.user_id, user.id);
@@ -3543,22 +3626,38 @@ mod tests {
             .unwrap();
 
         // Both should be findable
-        assert!(db.find_oauth_account("github", "gh-1").await.unwrap().is_some());
-        assert!(db.find_oauth_account("google", "goog-1").await.unwrap().is_some());
+        assert!(db
+            .find_oauth_account("github", "gh-1")
+            .await
+            .unwrap()
+            .is_some());
+        assert!(db
+            .find_oauth_account("google", "goog-1")
+            .await
+            .unwrap()
+            .is_some());
     }
 
     #[tokio::test]
     async fn test_create_user_oauth_no_password() {
         let db = test_db().await;
         let user = db
-            .create_user_oauth("oauthonly", "oauth@test.com", "OAuth User", Some("https://avatar.com/pic.png"))
+            .create_user_oauth(
+                "oauthonly",
+                "oauth@test.com",
+                "OAuth User",
+                Some("https://avatar.com/pic.png"),
+            )
             .await
             .unwrap();
 
         assert_eq!(user.username, "oauthonly");
         assert_eq!(user.email, "oauth@test.com");
         assert!(user.password_hash.is_none()); // no password for OAuth users
-        assert_eq!(user.avatar_url, Some("https://avatar.com/pic.png".to_string()));
+        assert_eq!(
+            user.avatar_url,
+            Some("https://avatar.com/pic.png".to_string())
+        );
     }
 
     #[tokio::test]
@@ -3590,7 +3689,10 @@ mod tests {
             .unwrap();
 
         let updated = db.get_user(user.id).await.unwrap().unwrap();
-        assert_eq!(updated.avatar_url, Some("https://example.com/new.png".to_string()));
+        assert_eq!(
+            updated.avatar_url,
+            Some("https://example.com/new.png".to_string())
+        );
     }
 
     #[tokio::test]
@@ -3617,7 +3719,11 @@ mod tests {
             .unwrap();
 
         // Verify it exists
-        assert!(db.find_oauth_account("github", "gh-del").await.unwrap().is_some());
+        assert!(db
+            .find_oauth_account("github", "gh-del")
+            .await
+            .unwrap()
+            .is_some());
 
         // Delete the user - OAuth account should cascade
         sqlx::query("DELETE FROM users WHERE id = $1")
@@ -3627,6 +3733,10 @@ mod tests {
             .unwrap();
 
         // OAuth account should be gone
-        assert!(db.find_oauth_account("github", "gh-del").await.unwrap().is_none());
+        assert!(db
+            .find_oauth_account("github", "gh-del")
+            .await
+            .unwrap()
+            .is_none());
     }
 }

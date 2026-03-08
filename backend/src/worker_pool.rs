@@ -58,23 +58,15 @@ impl WorkerPool {
         active.fetch_add(1, Ordering::Relaxed);
         metrics::HEADLESS_WORKERS_ACTIVE.set(active.load(Ordering::Relaxed) as i64);
 
-        let thread_name = format!(
-            "headless-game-{}",
-            match_id.unwrap_or(0)
-        );
+        let thread_name = format!("headless-game-{}", match_id.unwrap_or(0));
 
         let rt_handle = tokio::runtime::Handle::current();
 
         std::thread::Builder::new()
             .name(thread_name)
             .spawn(move || {
-                let result = run_game_headless(
-                    world,
-                    players,
-                    max_ticks,
-                    match_id,
-                    bot_version_ids,
-                );
+                let result =
+                    run_game_headless(world, players, max_ticks, match_id, bot_version_ids);
 
                 // Decrement active count
                 active.fetch_sub(1, Ordering::Relaxed);

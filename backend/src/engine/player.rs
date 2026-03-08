@@ -180,9 +180,7 @@ collectgarbage = nil
         }
 
         // Check for function bot() pattern (state-machine style entry point)
-        if code.contains("function bot()")
-            || code.contains("function bot ()")
-        {
+        if code.contains("function bot()") || code.contains("function bot ()") {
             return ApiStyle::State;
         }
 
@@ -205,7 +203,9 @@ collectgarbage = nil
                     .load(default_code)
                     .set_name("api/oo-default.lua")
                     .exec()
-                    .map_err(|e| format!("Failed to load high-level API defaults (oo-default.lua): {e}"))?;
+                    .map_err(|e| {
+                        format!("Failed to load high-level API defaults (oo-default.lua): {e}")
+                    })?;
             }
             ApiStyle::State => {
                 let api_code = include_str!("../../../orig_game/api/state.lua");
@@ -220,7 +220,9 @@ collectgarbage = nil
                     .load(default_code)
                     .set_name("api/state-default.lua")
                     .exec()
-                    .map_err(|e| format!("Failed to load high-level API defaults (state-default.lua): {e}"))?;
+                    .map_err(|e| {
+                        format!("Failed to load high-level API defaults (state-default.lua): {e}")
+                    })?;
             }
         }
         Ok(())
@@ -316,33 +318,57 @@ mod tests {
     #[test]
     fn test_player_think_exists_after_state_load() {
         let player = Player::new(1, "TestBot").unwrap();
-        player.load_code("function bot() function onIdle() end end").unwrap();
+        player
+            .load_code("function bot() function onIdle() end end")
+            .unwrap();
         let _func: mlua::Function = player.lua.globals().get("player_think").unwrap();
     }
 
     #[test]
     fn test_detect_oo_style() {
-        assert_eq!(Player::detect_api_style("function Creature:main() end"), ApiStyle::Oo);
-        assert_eq!(Player::detect_api_style("needs_api(\"oo\")\nfunction Creature:main() end"), ApiStyle::Oo);
+        assert_eq!(
+            Player::detect_api_style("function Creature:main() end"),
+            ApiStyle::Oo
+        );
+        assert_eq!(
+            Player::detect_api_style("needs_api(\"oo\")\nfunction Creature:main() end"),
+            ApiStyle::Oo
+        );
         assert_eq!(Player::detect_api_style(""), ApiStyle::Oo);
     }
 
     #[test]
     fn test_detect_state_style() {
-        assert_eq!(Player::detect_api_style("function bot()\n  function onIdle() end\nend"), ApiStyle::State);
-        assert_eq!(Player::detect_api_style("needs_api(\"state\")\nfunction bot() end"), ApiStyle::State);
-        assert_eq!(Player::detect_api_style("needs_api('state')\nfunction bot() end"), ApiStyle::State);
-        assert_eq!(Player::detect_api_style("needs_api \"state\"\nfunction bot() end"), ApiStyle::State);
+        assert_eq!(
+            Player::detect_api_style("function bot()\n  function onIdle() end\nend"),
+            ApiStyle::State
+        );
+        assert_eq!(
+            Player::detect_api_style("needs_api(\"state\")\nfunction bot() end"),
+            ApiStyle::State
+        );
+        assert_eq!(
+            Player::detect_api_style("needs_api('state')\nfunction bot() end"),
+            ApiStyle::State
+        );
+        assert_eq!(
+            Player::detect_api_style("needs_api \"state\"\nfunction bot() end"),
+            ApiStyle::State
+        );
     }
 
     #[test]
     fn test_needs_api_accepts_both_styles() {
         let player = Player::new(1, "TestBot").unwrap();
         // needs_api("oo") should not error
-        player.load_code("needs_api(\"oo\")\nfunction Creature:main() end").unwrap();
+        player
+            .load_code("needs_api(\"oo\")\nfunction Creature:main() end")
+            .unwrap();
 
         let player2 = Player::new(2, "TestBot2").unwrap();
         // needs_api("state") should not error
-        player2.load_code("needs_api(\"state\")\nfunction bot() function onIdle() end end").unwrap();
+        player2
+            .load_code("needs_api(\"state\")\nfunction bot() function onIdle() end end")
+            .unwrap();
     }
 }

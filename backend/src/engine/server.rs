@@ -90,7 +90,10 @@ pub fn list_maps(maps_dir: &Path) -> Vec<MapInfo> {
 /// Load a map by name from the given directory. Returns a World or an error message.
 pub fn load_map(maps_dir: &Path, name: &str) -> Result<World, String> {
     // Validate map name to prevent path traversal
-    if !name.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+    if !name
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+    {
         return Err(format!("Invalid map name '{}': only alphanumeric, underscore, and hyphen characters are allowed", name));
     }
     if name.is_empty() {
@@ -127,10 +130,7 @@ pub enum GameMessage {
     },
     /// A player failed to load (e.g. Lua syntax error).
     #[serde(rename = "player_load_error")]
-    PlayerLoadError {
-        player_name: String,
-        error: String,
-    },
+    PlayerLoadError { player_name: String, error: String },
 }
 
 /// Per-player combat stats included in the GameEnd message.
@@ -312,8 +312,8 @@ pub fn run_game_headless(
             recorder.record_message(&json);
         }
 
-        let winner_player_index = winner
-            .and_then(|winner_id| player_ids.iter().position(|&pid| pid == winner_id));
+        let winner_player_index =
+            winner.and_then(|winner_id| player_ids.iter().position(|&pid| pid == winner_id));
 
         let player_scores: Vec<PlayerScore> = final_snap
             .players
@@ -624,8 +624,8 @@ impl GameServer {
                     let snapshot = game.snapshot();
 
                     // Send full snapshot every N ticks, delta in between
-                    let send_full = tick_count % FULL_SNAPSHOT_INTERVAL == 1
-                        || prev_snapshot.is_none();
+                    let send_full =
+                        tick_count % FULL_SNAPSHOT_INTERVAL == 1 || prev_snapshot.is_none();
 
                     if send_full {
                         let msg = GameMessage::Snapshot(snapshot.clone());
@@ -683,7 +683,10 @@ impl GameServer {
                     if top.len() == 1 {
                         Some(top[0].id)
                     } else {
-                        tracing::info!("Time limit reached — draw ({} players tied at {max_score})", top.len());
+                        tracing::info!(
+                            "Time limit reached — draw ({} players tied at {max_score})",
+                            top.len()
+                        );
                         None
                     }
                 });

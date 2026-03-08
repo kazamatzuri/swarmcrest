@@ -9,11 +9,10 @@ use axum::{
 };
 use oauth2::basic::{BasicErrorResponseType, BasicTokenType};
 use oauth2::{
-    AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken,
-    EmptyExtraTokenFields, EndpointNotSet, EndpointSet, PkceCodeChallenge, PkceCodeVerifier,
-    RedirectUrl, RevocationErrorResponseType, Scope, StandardErrorResponse,
-    StandardRevocableToken, StandardTokenIntrospectionResponse, StandardTokenResponse,
-    TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, EmptyExtraTokenFields,
+    EndpointNotSet, EndpointSet, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl,
+    RevocationErrorResponseType, Scope, StandardErrorResponse, StandardRevocableToken,
+    StandardTokenIntrospectionResponse, StandardTokenResponse, TokenResponse, TokenUrl,
 };
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -112,12 +111,21 @@ impl OAuthState {
     pub fn new(cfg: &crate::config::Config, db: Arc<Database>) -> Self {
         let github_client = match (&cfg.github_client_id, &cfg.github_client_secret) {
             (Some(id), Some(secret)) => {
-                let redirect = format!("{}/api/auth/oauth/github/callback", cfg.oauth_redirect_base);
+                let redirect =
+                    format!("{}/api/auth/oauth/github/callback", cfg.oauth_redirect_base);
                 Some(
                     Client::new(ClientId::new(id.clone()))
                         .set_client_secret(ClientSecret::new(secret.clone()))
-                        .set_auth_uri(AuthUrl::new("https://github.com/login/oauth/authorize".to_string()).unwrap())
-                        .set_token_uri(TokenUrl::new("https://github.com/login/oauth/access_token".to_string()).unwrap())
+                        .set_auth_uri(
+                            AuthUrl::new("https://github.com/login/oauth/authorize".to_string())
+                                .unwrap(),
+                        )
+                        .set_token_uri(
+                            TokenUrl::new(
+                                "https://github.com/login/oauth/access_token".to_string(),
+                            )
+                            .unwrap(),
+                        )
                         .set_redirect_uri(RedirectUrl::new(redirect).unwrap()),
                 )
             }
@@ -126,12 +134,21 @@ impl OAuthState {
 
         let google_client = match (&cfg.google_client_id, &cfg.google_client_secret) {
             (Some(id), Some(secret)) => {
-                let redirect = format!("{}/api/auth/oauth/google/callback", cfg.oauth_redirect_base);
+                let redirect =
+                    format!("{}/api/auth/oauth/google/callback", cfg.oauth_redirect_base);
                 Some(
                     Client::new(ClientId::new(id.clone()))
                         .set_client_secret(ClientSecret::new(secret.clone()))
-                        .set_auth_uri(AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string()).unwrap())
-                        .set_token_uri(TokenUrl::new("https://oauth2.googleapis.com/token".to_string()).unwrap())
+                        .set_auth_uri(
+                            AuthUrl::new(
+                                "https://accounts.google.com/o/oauth2/v2/auth".to_string(),
+                            )
+                            .unwrap(),
+                        )
+                        .set_token_uri(
+                            TokenUrl::new("https://oauth2.googleapis.com/token".to_string())
+                                .unwrap(),
+                        )
                         .set_redirect_uri(RedirectUrl::new(redirect).unwrap()),
                 )
             }
@@ -177,12 +194,20 @@ pub(crate) fn sanitize_username(input: &str) -> String {
 
 pub(crate) async fn generate_unique_username(base: &str, db: &Database) -> Result<String, String> {
     let sanitized = sanitize_username(base);
-    if !db.username_exists(&sanitized).await.map_err(|e| e.to_string())? {
+    if !db
+        .username_exists(&sanitized)
+        .await
+        .map_err(|e| e.to_string())?
+    {
         return Ok(sanitized);
     }
     for i in 1..100 {
         let candidate = format!("{}{i}", &sanitized[..sanitized.len().min(27)]);
-        if !db.username_exists(&candidate).await.map_err(|e| e.to_string())? {
+        if !db
+            .username_exists(&candidate)
+            .await
+            .map_err(|e| e.to_string())?
+        {
             return Ok(candidate);
         }
     }
@@ -263,9 +288,7 @@ pub(crate) async fn find_or_create_user(
 
 // ── Provider availability endpoint ──────────────────────────────────
 
-pub async fn auth_providers(
-    State(oauth): State<Arc<OAuthState>>,
-) -> Json<serde_json::Value> {
+pub async fn auth_providers(State(oauth): State<Arc<OAuthState>>) -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "github": oauth.github_client.is_some(),
         "google": oauth.google_client.is_some(),
@@ -275,14 +298,13 @@ pub async fn auth_providers(
 
 // ── GitHub OAuth ────────────────────────────────────────────────────
 
-pub async fn github_auth_start(
-    State(oauth): State<Arc<OAuthState>>,
-) -> impl IntoResponse {
+pub async fn github_auth_start(State(oauth): State<Arc<OAuthState>>) -> impl IntoResponse {
     let Some(client) = &oauth.github_client else {
         return (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({"error": "GitHub SSO not configured"})),
-        ).into_response();
+        )
+            .into_response();
     };
 
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -315,8 +337,11 @@ pub async fn github_auth_callback(
 
     if let Some(err) = &params.error {
         return Redirect::temporary(&format!(
-            "{}/login?error=oauth_denied&detail={}", base, urlencoding::encode(err)
-        )).into_response();
+            "{}/login?error=oauth_denied&detail={}",
+            base,
+            urlencoding::encode(err)
+        ))
+        .into_response();
     }
 
     if crate::rate_limit::check_auth_rate_limit(addr.ip()).is_err() {
@@ -324,7 +349,8 @@ pub async fn github_auth_callback(
     }
 
     let (Some(code), Some(state)) = (&params.code, &params.state) else {
-        return Redirect::temporary(&format!("{}/login?error=missing_params", base)).into_response();
+        return Redirect::temporary(&format!("{}/login?error=missing_params", base))
+            .into_response();
     };
 
     // Validate CSRF state and retrieve PKCE verifier
@@ -333,7 +359,8 @@ pub async fn github_auth_callback(
     };
 
     let Some(client) = &oauth.github_client else {
-        return Redirect::temporary(&format!("{}/login?error=not_configured", base)).into_response();
+        return Redirect::temporary(&format!("{}/login?error=not_configured", base))
+            .into_response();
     };
 
     // Exchange authorization code for access token (oauth2 crate handles PKCE + token parsing)
@@ -351,7 +378,8 @@ pub async fn github_auth_callback(
         Ok(t) => t,
         Err(e) => {
             tracing::error!("GitHub token exchange failed: {e}");
-            return Redirect::temporary(&format!("{}/login?error=token_exchange_failed", base)).into_response();
+            return Redirect::temporary(&format!("{}/login?error=token_exchange_failed", base))
+                .into_response();
         }
     };
 
@@ -367,7 +395,8 @@ pub async fn github_auth_callback(
         email: Option<String>,
     }
 
-    let gh_user: GitHubUser = match oauth.http_client
+    let gh_user: GitHubUser = match oauth
+        .http_client
         .get("https://api.github.com/user")
         .header("Authorization", format!("Bearer {access_token}"))
         .send()
@@ -377,12 +406,14 @@ pub async fn github_auth_callback(
             Ok(u) => u,
             Err(e) => {
                 tracing::error!("Failed to parse GitHub user: {e}");
-                return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base)).into_response();
+                return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base))
+                    .into_response();
             }
         },
         Err(e) => {
             tracing::error!("GitHub user fetch failed: {e}");
-            return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base)).into_response();
+            return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base))
+                .into_response();
         }
     };
 
@@ -397,7 +428,8 @@ pub async fn github_auth_callback(
             verified: bool,
         }
 
-        match oauth.http_client
+        match oauth
+            .http_client
             .get("https://api.github.com/user/emails")
             .header("Authorization", format!("Bearer {access_token}"))
             .send()
@@ -430,14 +462,13 @@ pub async fn github_auth_callback(
 
 // ── Google OAuth ────────────────────────────────────────────────────
 
-pub async fn google_auth_start(
-    State(oauth): State<Arc<OAuthState>>,
-) -> impl IntoResponse {
+pub async fn google_auth_start(State(oauth): State<Arc<OAuthState>>) -> impl IntoResponse {
     let Some(client) = &oauth.google_client else {
         return (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({"error": "Google SSO not configured"})),
-        ).into_response();
+        )
+            .into_response();
     };
 
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -465,8 +496,11 @@ pub async fn google_auth_callback(
 
     if let Some(err) = &params.error {
         return Redirect::temporary(&format!(
-            "{}/login?error=oauth_denied&detail={}", base, urlencoding::encode(err)
-        )).into_response();
+            "{}/login?error=oauth_denied&detail={}",
+            base,
+            urlencoding::encode(err)
+        ))
+        .into_response();
     }
 
     if crate::rate_limit::check_auth_rate_limit(addr.ip()).is_err() {
@@ -474,7 +508,8 @@ pub async fn google_auth_callback(
     }
 
     let (Some(code), Some(state)) = (&params.code, &params.state) else {
-        return Redirect::temporary(&format!("{}/login?error=missing_params", base)).into_response();
+        return Redirect::temporary(&format!("{}/login?error=missing_params", base))
+            .into_response();
     };
 
     let Some(pkce_verifier) = oauth.flow_store.take(state).await else {
@@ -482,7 +517,8 @@ pub async fn google_auth_callback(
     };
 
     let Some(client) = &oauth.google_client else {
-        return Redirect::temporary(&format!("{}/login?error=not_configured", base)).into_response();
+        return Redirect::temporary(&format!("{}/login?error=not_configured", base))
+            .into_response();
     };
 
     let http_client = reqwest::ClientBuilder::new()
@@ -499,7 +535,8 @@ pub async fn google_auth_callback(
         Ok(t) => t,
         Err(e) => {
             tracing::error!("Google token exchange failed: {e}");
-            return Redirect::temporary(&format!("{}/login?error=token_exchange_failed", base)).into_response();
+            return Redirect::temporary(&format!("{}/login?error=token_exchange_failed", base))
+                .into_response();
         }
     };
 
@@ -514,7 +551,8 @@ pub async fn google_auth_callback(
         picture: Option<String>,
     }
 
-    let google_user: GoogleUser = match oauth.http_client
+    let google_user: GoogleUser = match oauth
+        .http_client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
         .header("Authorization", format!("Bearer {access_token}"))
         .send()
@@ -524,12 +562,14 @@ pub async fn google_auth_callback(
             Ok(u) => u,
             Err(e) => {
                 tracing::error!("Failed to parse Google user: {e}");
-                return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base)).into_response();
+                return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base))
+                    .into_response();
             }
         },
         Err(e) => {
             tracing::error!("Google user fetch failed: {e}");
-            return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base)).into_response();
+            return Redirect::temporary(&format!("{}/login?error=user_fetch_failed", base))
+                .into_response();
         }
     };
 
@@ -570,7 +610,8 @@ pub(crate) async fn resolve_and_redirect(
                 Ok(t) => t,
                 Err(e) => {
                     tracing::error!("JWT creation failed: {e}");
-                    return Redirect::temporary(&format!("{}/login?error=internal", base)).into_response();
+                    return Redirect::temporary(&format!("{}/login?error=internal", base))
+                        .into_response();
                 }
             };
             Redirect::temporary(&format!("{}/auth/callback?token={}", base, token)).into_response()
@@ -753,10 +794,7 @@ mod tests {
         assert!(user.password_hash.is_none()); // OAuth user, no password
 
         // Verify OAuth account was created
-        let oauth = db
-            .find_oauth_account("github", "12345")
-            .await
-            .unwrap();
+        let oauth = db.find_oauth_account("github", "12345").await.unwrap();
         assert!(oauth.is_some());
         assert_eq!(oauth.unwrap().user_id, user.id);
     }
@@ -816,7 +854,10 @@ mod tests {
         assert_eq!(user.email, "alice@example.com");
 
         // Verify OAuth account is linked
-        let oauth = db.find_oauth_account("google", "google-id-1").await.unwrap();
+        let oauth = db
+            .find_oauth_account("google", "google-id-1")
+            .await
+            .unwrap();
         assert!(oauth.is_some());
         assert_eq!(oauth.unwrap().user_id, user.id);
     }
@@ -851,8 +892,16 @@ mod tests {
         assert_eq!(user_gh.id, user_google.id);
 
         // Both OAuth accounts should exist
-        assert!(db.find_oauth_account("github", "gh-123").await.unwrap().is_some());
-        assert!(db.find_oauth_account("google", "goog-456").await.unwrap().is_some());
+        assert!(db
+            .find_oauth_account("github", "gh-123")
+            .await
+            .unwrap()
+            .is_some());
+        assert!(db
+            .find_oauth_account("google", "goog-456")
+            .await
+            .unwrap()
+            .is_some());
     }
 
     #[tokio::test]

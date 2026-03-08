@@ -15,6 +15,7 @@ mod replay;
 mod tournament;
 mod worker_pool;
 
+use axum::http::HeaderValue;
 use axum::{
     body::Body,
     http::{Request, StatusCode},
@@ -26,7 +27,6 @@ use axum::{
 use serde_json::{json, Value};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use axum::http::HeaderValue;
 use tower_http::cors::CorsLayer;
 
 use config::Config;
@@ -43,7 +43,8 @@ async fn metrics_handler(req: axum::http::Request<Body>) -> impl IntoResponse {
     if !crate::config::is_local_mode() {
         let metrics_token = std::env::var("METRICS_TOKEN").ok();
         if let Some(expected_token) = metrics_token {
-            let auth_header = req.headers()
+            let auth_header = req
+                .headers()
                 .get("Authorization")
                 .and_then(|v| v.to_str().ok())
                 .and_then(|v| v.strip_prefix("Bearer "));
@@ -203,9 +204,15 @@ async fn main() {
         // OAuth SSO routes
         .route("/api/auth/providers", get(oauth::auth_providers))
         .route("/api/auth/oauth/github", get(oauth::github_auth_start))
-        .route("/api/auth/oauth/github/callback", get(oauth::github_auth_callback))
+        .route(
+            "/api/auth/oauth/github/callback",
+            get(oauth::github_auth_callback),
+        )
         .route("/api/auth/oauth/google", get(oauth::google_auth_start))
-        .route("/api/auth/oauth/google/callback", get(oauth::google_auth_callback))
+        .route(
+            "/api/auth/oauth/google/callback",
+            get(oauth::google_auth_callback),
+        )
         .with_state(oauth_state)
         .merge(api::router(
             db,
@@ -230,10 +237,9 @@ async fn main() {
         if static_dir.exists() {
             tracing::info!("Serving static files from: {}", static_dir.display());
             // Serve static files, with SPA fallback to index.html for client-side routing
-            let serve_dir = tower_http::services::ServeDir::new(static_dir)
-                .not_found_service(tower_http::services::ServeFile::new(
-                    static_dir.join("index.html"),
-                ));
+            let serve_dir = tower_http::services::ServeDir::new(static_dir).not_found_service(
+                tower_http::services::ServeFile::new(static_dir.join("index.html")),
+            );
             app = app.fallback_service(serve_dir);
         } else {
             tracing::warn!(
@@ -259,10 +265,7 @@ async fn main() {
 
 /// Ensure the default "local" user exists in the database for local mode.
 async fn ensure_local_user(db: &db::Database) {
-    match db
-        .get_user_by_username(config::LOCAL_USERNAME)
-        .await
-    {
+    match db.get_user_by_username(config::LOCAL_USERNAME).await {
         Ok(Some(_)) => {
             tracing::info!("Local user already exists");
         }
