@@ -5,7 +5,8 @@
       "WebFetch(domain:github.com)",
       "Bash(grep:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(ls:*)"
     ]
   }
 }
