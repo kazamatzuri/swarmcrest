@@ -63,7 +63,7 @@ async fn create_bot(app: &axum::Router, name: &str) -> Value {
 async fn create_bot_version(app: &axum::Router, bot_id: i64, code: &str) -> Value {
     let req = Request::builder()
         .method("POST")
-        .uri(&format!("/api/bots/{bot_id}/versions"))
+        .uri(format!("/api/bots/{bot_id}/versions"))
         .header("Content-Type", "application/json")
         .body(Body::from(json!({"code": code}).to_string()))
         .unwrap();
@@ -112,7 +112,7 @@ async fn test_get_tournament() {
     let id = created["id"].as_i64().unwrap();
 
     let req = Request::builder()
-        .uri(&format!("/api/tournaments/{id}"))
+        .uri(format!("/api/tournaments/{id}"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -141,7 +141,7 @@ async fn test_update_tournament() {
 
     let req = Request::builder()
         .method("PUT")
-        .uri(&format!("/api/tournaments/{id}"))
+        .uri(format!("/api/tournaments/{id}"))
         .header("Content-Type", "application/json")
         .body(Body::from(json!({"name": "New Name"}).to_string()))
         .unwrap();
@@ -164,7 +164,7 @@ async fn test_add_tournament_entry() {
 
     let req = Request::builder()
         .method("POST")
-        .uri(&format!("/api/tournaments/{tid}/entries"))
+        .uri(format!("/api/tournaments/{tid}/entries"))
         .header("Content-Type", "application/json")
         .body(Body::from(
             json!({"bot_version_id": version_id}).to_string(),
@@ -196,7 +196,7 @@ async fn test_list_tournament_entries() {
     for vid in [v1_id, v2_id] {
         let req = Request::builder()
             .method("POST")
-            .uri(&format!("/api/tournaments/{tid}/entries"))
+            .uri(format!("/api/tournaments/{tid}/entries"))
             .header("Content-Type", "application/json")
             .body(Body::from(json!({"bot_version_id": vid}).to_string()))
             .unwrap();
@@ -205,7 +205,7 @@ async fn test_list_tournament_entries() {
     }
 
     let req = Request::builder()
-        .uri(&format!("/api/tournaments/{tid}/entries"))
+        .uri(format!("/api/tournaments/{tid}/entries"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -228,7 +228,7 @@ async fn test_remove_tournament_entry() {
 
     let req = Request::builder()
         .method("POST")
-        .uri(&format!("/api/tournaments/{tid}/entries"))
+        .uri(format!("/api/tournaments/{tid}/entries"))
         .header("Content-Type", "application/json")
         .body(Body::from(
             json!({"bot_version_id": version_id}).to_string(),
@@ -241,7 +241,7 @@ async fn test_remove_tournament_entry() {
 
     let req = Request::builder()
         .method("DELETE")
-        .uri(&format!("/api/tournaments/{tid}/entries/{entry_id}"))
+        .uri(format!("/api/tournaments/{tid}/entries/{entry_id}"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -255,7 +255,7 @@ async fn test_get_tournament_standings() {
     let tid = tournament["id"].as_i64().unwrap();
 
     let req = Request::builder()
-        .uri(&format!("/api/tournaments/{tid}/standings"))
+        .uri(format!("/api/tournaments/{tid}/standings"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -269,7 +269,7 @@ async fn test_get_tournament_results() {
     let tid = tournament["id"].as_i64().unwrap();
 
     let req = Request::builder()
-        .uri(&format!("/api/tournaments/{tid}/results"))
+        .uri(format!("/api/tournaments/{tid}/results"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -286,7 +286,7 @@ async fn test_get_tournament_matches() {
     let tid = tournament["id"].as_i64().unwrap();
 
     let req = Request::builder()
-        .uri(&format!("/api/tournaments/{tid}/matches"))
+        .uri(format!("/api/tournaments/{tid}/matches"))
         .body(Body::empty())
         .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();

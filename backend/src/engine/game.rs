@@ -1371,7 +1371,7 @@ mod tests {
         let creatures = game.creatures.borrow();
         let creature = creatures.get(&cid).unwrap();
         // Creature should have moved closer to target
-        let start_dist = ((cx - target_x).abs() + (cy - target_y).abs()) as i32;
+        let start_dist = (cx - target_x).abs() + (cy - target_y).abs();
         let end_dist = ((creature.x - target_x).abs() + (creature.y - target_y).abs()) as i32;
         assert!(
             end_dist < start_dist,

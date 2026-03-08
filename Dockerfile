@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy files needed at compile time by include_str! macros
-COPY orig_game/ orig_game/
 COPY docs/ docs/
 
 WORKDIR /app/backend

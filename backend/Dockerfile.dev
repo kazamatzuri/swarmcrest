@@ -23,5 +23,4 @@ RUN rm -rf src
 EXPOSE 3000
 
 # Use cargo-watch: rebuild and restart on any .rs file change.
-# -w also watches orig_game for Lua file changes (used by include_str!).
-CMD ["cargo", "watch", "-x", "run", "-w", "src", "-w", "tests", "-w", "/app/orig_game"]
+CMD ["cargo", "watch", "-x", "run", "-w", "src", "-w", "tests"]

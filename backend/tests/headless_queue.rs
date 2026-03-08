@@ -28,7 +28,7 @@ fn create_test_world() -> World {
 }
 
 fn stupibot_code() -> &'static str {
-    include_str!("../../orig_game/contrib/bots/stupibot.lua")
+    include_str!("test_bots/stupibot.lua")
 }
 
 async fn test_db() -> Database {
@@ -58,7 +58,7 @@ fn test_headless_two_bots_produces_result() {
     assert_eq!(result.match_id, Some(42));
     assert!(result.tick_count > 0, "Game should have run some ticks");
     assert_eq!(result.player_scores.len(), 2);
-    assert!(result.replay_data.len() > 0, "Replay should be non-empty");
+    assert!(!result.replay_data.is_empty(), "Replay should be non-empty");
     assert!(result.failed_bot_version_ids.is_empty());
 
     // Both players should have scores

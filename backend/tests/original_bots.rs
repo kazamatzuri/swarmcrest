@@ -35,7 +35,7 @@ fn test_stupibot_loads() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot.lua");
+    let code = include_str!("test_bots/stupibot.lua");
     let result = game.add_player("stupibot", code);
     assert!(result.is_ok(), "Failed to add stupibot: {:?}", result.err());
 }
@@ -45,7 +45,7 @@ fn test_stupibot_runs_50_ticks() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot.lua");
+    let code = include_str!("test_bots/stupibot.lua");
     let player_id = game
         .add_player("stupibot", code)
         .expect("Failed to add stupibot");
@@ -75,7 +75,7 @@ fn test_stupibot_eats_food() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot.lua");
+    let code = include_str!("test_bots/stupibot.lua");
     let player_id = game.add_player("stupibot", code).unwrap();
 
     let spawn_x = World::tile_center(5);
@@ -105,7 +105,7 @@ fn test_stupibot2_loads_and_runs() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot2.lua");
+    let code = include_str!("test_bots/stupibot2.lua");
     let player_id = game
         .add_player("stupibot2", code)
         .expect("Failed to add stupibot2");
@@ -125,7 +125,7 @@ fn test_sissy_bot_loads_and_runs() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/sissy-bot.lua");
+    let code = include_str!("test_bots/sissy-bot.lua");
     let player_id = game
         .add_player("sissy-bot", code)
         .expect("Failed to add sissy-bot");
@@ -148,7 +148,7 @@ fn test_stupibot_vs_stupibot() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot.lua");
+    let code = include_str!("test_bots/stupibot.lua");
     let p1 = game.add_player("stupibot1", code).unwrap();
     let p2 = game.add_player("stupibot2_player", code).unwrap();
 
@@ -182,7 +182,7 @@ fn test_stupibot_no_lua_errors() {
     let world = create_test_world();
     let mut game = Game::new(world);
 
-    let code = include_str!("../../orig_game/contrib/bots/stupibot.lua");
+    let code = include_str!("test_bots/stupibot.lua");
     let player_id = game.add_player("stupibot", code).unwrap();
 
     game.spawn_creature(

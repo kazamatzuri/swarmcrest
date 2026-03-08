@@ -10,7 +10,6 @@ services:
       - ./backend/tests:/app/backend/tests
       - ./backend/Cargo.toml:/app/backend/Cargo.toml
       - ./backend/Cargo.lock:/app/backend/Cargo.lock
-      - ./orig_game:/app/orig_game
       - ./docs:/app/docs
       - backend-target:/app/backend/target
       - ./data/maps:/app/data/maps
