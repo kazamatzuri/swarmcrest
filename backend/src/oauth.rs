@@ -54,6 +54,12 @@ pub struct FlowStore {
     pending: RwLock<HashMap<String, PendingFlow>>,
 }
 
+impl Default for FlowStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FlowStore {
     pub fn new() -> Self {
         Self {

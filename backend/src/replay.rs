@@ -10,6 +10,12 @@ pub struct ReplayRecorder {
     messages: Vec<String>,
 }
 
+impl Default for ReplayRecorder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReplayRecorder {
     pub fn new() -> Self {
         Self {

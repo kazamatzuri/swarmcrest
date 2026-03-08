@@ -1537,6 +1537,7 @@ impl Database {
         Ok(rows)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn list_matches_filtered(
         &self,
         limit: i64,
@@ -1701,6 +1702,7 @@ impl Database {
         Ok(row)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn update_match_participant(
         &self,
         participant_id: i64,
@@ -1763,6 +1765,7 @@ impl Database {
         Ok(result.rows_affected() > 0)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn update_version_stats(
         &self,
         version_id: i64,
@@ -2014,6 +2017,7 @@ impl Database {
 
     // ── Tournament Results ────────────────────────────────────────────
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn add_tournament_result(
         &self,
         tournament_id: i64,

@@ -402,6 +402,12 @@ struct GameMeta {
     start_time: String,
 }
 
+impl Default for GameServer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GameServer {
     pub fn new() -> Self {
         let (tx, _) = broadcast::channel(256);
@@ -479,6 +485,7 @@ impl GameServer {
     /// - `bot_version_ids`: one per player, same order as `players` vec
     /// - `headless`: if true, skip the 100ms per-tick sleep (fast mode)
     /// - `on_complete`: called on the game thread when the game finishes
+    #[allow(clippy::too_many_arguments)]
     pub fn start_game_with_callback(
         &self,
         world: World,

@@ -191,14 +191,14 @@ collectgarbage = nil
     fn load_api(&self, style: ApiStyle) -> Result<(), String> {
         match style {
             ApiStyle::Oo => {
-                let api_code = include_str!("../../../orig_game/api/oo.lua");
+                let api_code = include_str!("lua_api_files/oo.lua");
                 self.lua
                     .load(api_code)
                     .set_name("api/oo.lua")
                     .exec()
                     .map_err(|e| format!("Failed to load high-level API (oo.lua): {e}"))?;
 
-                let default_code = include_str!("../../../orig_game/api/oo-default.lua");
+                let default_code = include_str!("lua_api_files/oo-default.lua");
                 self.lua
                     .load(default_code)
                     .set_name("api/oo-default.lua")
@@ -208,14 +208,14 @@ collectgarbage = nil
                     })?;
             }
             ApiStyle::State => {
-                let api_code = include_str!("../../../orig_game/api/state.lua");
+                let api_code = include_str!("lua_api_files/state.lua");
                 self.lua
                     .load(api_code)
                     .set_name("api/state.lua")
                     .exec()
                     .map_err(|e| format!("Failed to load high-level API (state.lua): {e}"))?;
 
-                let default_code = include_str!("../../../orig_game/api/state-default.lua");
+                let default_code = include_str!("lua_api_files/state-default.lua");
                 self.lua
                     .load(default_code)
                     .set_name("api/state-default.lua")

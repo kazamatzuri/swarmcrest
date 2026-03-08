@@ -701,7 +701,7 @@ impl Game {
             let events = self
                 .pending_events
                 .get_mut(&pid)
-                .map(|e| std::mem::take(e))
+                .map(std::mem::take)
                 .unwrap_or_default();
 
             // Build the Lua events table
@@ -727,7 +727,7 @@ impl Game {
             lua_api::set_game_state(&player.lua, gs);
 
             // Set instruction count limit to prevent infinite loops
-            let _ = player.lua.set_hook(
+            player.lua.set_hook(
                 mlua::HookTriggers::new().every_nth_instruction(LUA_MAX_INSTRUCTIONS),
                 |_lua, _debug| Err(mlua::Error::RuntimeError("lua vm cycles exceeded".into())),
             );
@@ -1010,7 +1010,7 @@ impl Game {
                         c.set_state(CREATURE_IDLE);
                     }
                 }
-                CREATURE_IDLE | _ => {
+                _ => {
                     // Idle: do nothing
                 }
             }

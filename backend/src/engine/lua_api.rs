@@ -551,10 +551,9 @@ pub fn register_functions(lua: &Lua, _player_id: u32) -> LuaResult<()> {
         "creature_get_config",
         lua.create_function(|_, key: String| -> LuaResult<Value> {
             // Return known config values. For MVP, return common ones.
-            let val: Option<i32> = match key.as_str() {
-                // Format: type_stat, e.g. "0_max_health"
-                _ => None,
-            };
+            let _key_str = key.as_str();
+            // Format: type_stat, e.g. "0_max_health"
+            let val: Option<i32> = None;
             match val {
                 Some(v) => Ok(Value::Integer(v as i64)),
                 None => Ok(Value::Nil),

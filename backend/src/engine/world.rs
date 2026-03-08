@@ -204,6 +204,7 @@ impl World {
     /// 4. Flood-fill to find largest connected walkable region; fill smaller regions with solid
     /// 5. Place KOTH at nearest walkable tile to map center
     /// 6. Scatter food spawners on random walkable tiles
+    #[allow(clippy::needless_range_loop)]
     pub fn generate_random(params: RandomMapParams) -> Self {
         let width = params.width.clamp(20, 150);
         let height = params.height.clamp(20, 150);
@@ -326,16 +327,8 @@ impl World {
         let mut best_dist = usize::MAX;
         if !regions.is_empty() {
             for &(x, y) in &regions[largest_idx] {
-                let dx = if x >= center_x {
-                    x - center_x
-                } else {
-                    center_x - x
-                };
-                let dy = if y >= center_y {
-                    y - center_y
-                } else {
-                    center_y - y
-                };
+                let dx = x.abs_diff(center_x);
+                let dy = y.abs_diff(center_y);
                 let dist = dx * dx + dy * dy;
                 if dist < best_dist {
                     best_dist = dist;

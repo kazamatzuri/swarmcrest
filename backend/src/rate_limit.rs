@@ -99,7 +99,7 @@ impl RateLimiter {
         let max = limit_type.max_count();
         let now = Instant::now();
 
-        let entries = map.entry(key).or_insert_with(Vec::new);
+        let entries = map.entry(key).or_default();
 
         // Remove expired entries
         entries.retain(|t| now.duration_since(*t) < window);
@@ -170,7 +170,7 @@ impl IpRateLimiter {
         }
         let mut map = self.inner.lock().unwrap();
         let now = Instant::now();
-        let entries = map.entry(ip).or_insert_with(Vec::new);
+        let entries = map.entry(ip).or_default();
         entries.retain(|t| now.duration_since(*t) < window);
 
         if entries.len() >= max_requests {
