@@ -90,11 +90,18 @@ if [[ -f "$NGINX_CONF" ]]; then
   fi
   info "http://$DOMAIN/ returned HTTP $HTTP_STATUS — nginx is serving."
 
+  # Create webroot for ACME challenges (nginx serves this path from disk)
+  mkdir -p /var/www/certbot/.well-known/acme-challenge
+
   info "Requesting TLS certificate..."
-  # certbot --nginx handles the ACME challenge itself (no webroot needed)
-  # and automatically modifies the nginx config to add SSL + redirect
-  certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email || \
+  # Step 1: get the cert via webroot (works even when backend is down)
+  certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
+    --non-interactive --agree-tos --register-unsafely-without-email || \
     error "Certbot failed. Check: DNS A record, firewall port 80, nginx config."
+
+  # Step 2: let certbot wire the cert into nginx config (adds 443 block + redirect)
+  certbot install --nginx -d "$DOMAIN" --non-interactive || \
+    error "Certbot install failed."
   info "TLS certificate installed."
 else
   error "nginx/swarmcrest.conf not found in repo."
