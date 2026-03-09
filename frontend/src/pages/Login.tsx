@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { SsoButtons } from '../components/SsoButtons';
 
 export function Login() {
   const [username, setUsername] = useState('');
@@ -39,6 +40,7 @@ export function Login() {
     <div style={{ maxWidth: 400, margin: '80px auto', padding: 24 }}>
       <h2>Login</h2>
       {error && <p style={{ color: '#f44' }}>{error}</p>}
+      <SsoButtons />
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
           <label>Username</label>

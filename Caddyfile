@@ -1,3 +1,0 @@
-{$DOMAIN:swarmcrest.submerged-intelligence.de} {
-	reverse_proxy backend:3000
-}

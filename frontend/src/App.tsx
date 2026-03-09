@@ -9,6 +9,7 @@ import { GameViewer } from './pages/GameViewer';
 import { GameList } from './pages/GameList';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { OAuthCallback } from './pages/OAuthCallback';
 import { Leaderboard } from './pages/Leaderboard';
 import { ApiKeys } from './pages/ApiKeys';
 import { Challenge } from './pages/Challenge';
@@ -96,6 +97,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/auth/callback" element={<OAuthCallback />} />
             </Routes>
           </main>
           <FeedbackButton />
