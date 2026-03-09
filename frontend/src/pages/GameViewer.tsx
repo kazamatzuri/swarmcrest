@@ -4,7 +4,11 @@ import { GameCanvas } from '../components/GameCanvas';
 import { api } from '../api/client';
 import type { Bot, BotVersion, MapInfo } from '../api/client';
 
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/game`;
+function getWsUrl() {
+  const base = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/game`;
+  const token = localStorage.getItem('swarmcrest_token');
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+}
 
 interface PlayerSlot {
   botId: number | null;
@@ -164,7 +168,7 @@ export function GameViewer() {
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
           <GameCanvas
-            wsUrl={WS_URL}
+            wsUrl={getWsUrl()}
             onGameEnd={() => setGameEnded(true)}
             onNewGame={() => {
               setGameEnded(false);
