@@ -254,6 +254,35 @@ end`}</CodeBlock>
         </div>
       </Card>
 
+      <Card title="LLM-Friendly Documentation">
+        <p style={textStyle}>
+          Building a bot with the help of an AI assistant? SwarmCrest provides machine-readable
+          documentation endpoints following the{' '}
+          <a href="https://llmstxt.org/" target="_blank" rel="noopener noreferrer" style={{ color: '#16c79a' }}>
+            llms.txt standard
+          </a>:
+        </p>
+        <ul style={{ color: '#ccc', lineHeight: 2, paddingLeft: 20, margin: '0 0 12px 0' }}>
+          <li>
+            <a href="/llms.txt" target="_blank" rel="noopener noreferrer" style={{ color: '#16c79a' }}>
+              <code style={{ color: '#16c79a' }}>/llms.txt</code>
+            </a>{' '}
+            -- A concise summary of the API, endpoints, and bot programming basics.
+          </li>
+          <li>
+            <a href="/llms-full.txt" target="_blank" rel="noopener noreferrer" style={{ color: '#16c79a' }}>
+              <code style={{ color: '#16c79a' }}>/llms-full.txt</code>
+            </a>{' '}
+            -- Complete documentation including game mechanics, creature stats, combat math,
+            and the full Lua API reference.
+          </li>
+        </ul>
+        <p style={{ ...textStyle, fontSize: 13 }}>
+          Paste either URL into your LLM's context, or point tools like Cursor, Claude Code, or
+          ChatGPT at them so they can help you write better bots.
+        </p>
+      </Card>
+
       <Card title="Two High-Level API Styles">
         <p style={textStyle}>
           The low-level API exposes engine functions directly (set_path, get_pos, etc.).
