@@ -14,6 +14,7 @@ Create keys in the web UI at /api-keys or via POST /api/api-keys.
 - GET/POST /api/bots - List/create bots
 - GET/PUT/DELETE /api/bots/{id} - Get/update/delete bot
 - GET/POST /api/bots/{id}/versions - List/create bot versions
+- GET/PUT /api/bots/{id}/versions/{vid} - Get/update a specific version
 - PUT /api/bots/{id}/active-version - Set active version
 - GET /api/bots/{id}/stats - Get bot version stats
 - GET /api/matches - List recent matches
@@ -171,6 +172,12 @@ Content-Type: application/json
 {"code": "function Creature:main()\n  self:eat()\nend"}
 ```
 
+**Get/Update Version:**
+```
+GET /api/bots/{id}/versions/{version_id}
+PUT /api/bots/{id}/versions/{version_id}  {"code": "..."}
+```
+
 **Set Active Version:**
 ```
 PUT /api/bots/{id}/active-version
@@ -291,10 +298,11 @@ DELETE /api/tournaments/{id}/entries/{entry_id}
 POST /api/tournaments/{id}/run
 ```
 
-**Standings & Results:**
+**Standings, Results & Matches:**
 ```
 GET /api/tournaments/{id}/standings
 GET /api/tournaments/{id}/results
+GET /api/tournaments/{id}/matches
 ```
 
 ### Leaderboards
@@ -332,6 +340,20 @@ Authorization: Bearer <token>
 Content-Type: application/json
 {"code": "function Creature:main() end"}
 Response: {"valid": true} or {"valid": false, "error": "..."}
+```
+
+### Notifications
+
+```
+GET /api/notifications              - List your notifications
+POST /api/notifications/{id}/read   - Mark notification as read
+```
+
+### Feedback
+
+```
+GET /api/feedback   - List feedback
+POST /api/feedback  - Submit feedback
 ```
 
 ### Documentation & Further Reading
@@ -419,7 +441,7 @@ Food is consumed at 1,000 food/s during conversion:
 ### Spawning (Big Only)
 
 - Food cost: 5,000 (consumed at 2,000 food/s)
-- Health cost: 4,000 HP (deducted immediately at spawn start)
+- Health cost: 4,000 HP (deducted when spawn completes)
 - Offspring type: Small (Type 0)
 
 ### Food & Tile Economy
@@ -457,7 +479,6 @@ Food is consumed at 1,000 food/s during conversion:
 ### Scoring
 - Points from holding King of the Hill
 - suicide() costs 40 points
-- Players may be kicked if score drops too low
 
 ---
 
@@ -467,8 +488,11 @@ Food is consumed at 1,000 food/s during conversion:
 ```lua
 CREATURE_IDLE=0  CREATURE_WALK=1  CREATURE_HEAL=2  CREATURE_EAT=3
 CREATURE_ATTACK=4  CREATURE_CONVERT=5  CREATURE_SPAWN=6  CREATURE_FEED=7
+CREATURE_SMALL=0  CREATURE_BIG=1  CREATURE_FLYER=2
 TILE_SOLID=0  TILE_PLAIN=1
+TILE_WIDTH=256  TILE_HEIGHT=256
 CREATURE_SPAWNED=0  CREATURE_KILLED=1  CREATURE_ATTACKED=2  PLAYER_CREATED=3
+player_number  -- global: this player's ID
 ```
 
 ### Low-Level API
@@ -485,12 +509,12 @@ CREATURE_SPAWNED=0  CREATURE_KILLED=1  CREATURE_ATTACKED=2  PLAYER_CREATED=3
 **Creature Queries:**
 - get_pos(id) -> x, y
 - get_type(id) -> type
-- get_food(id) -> food (own only)
+- get_food(id) -> food
 - get_health(id) -> 0-100
-- get_speed(id) -> speed (own only)
-- get_tile_food(id) -> food (own only)
+- get_speed(id) -> speed
+- get_tile_food(id) -> food
 - get_tile_type(id) -> type
-- get_max_food(id) -> food (own only)
+- get_max_food(id) -> food
 - get_distance(id, target_id) -> dist
 - get_nearest_enemy(id) -> id, x, y, playernum, dist (or nil)
 - creature_exists(id) -> bool
@@ -526,9 +550,9 @@ Entry point: `function bot() ... end`
 
 **State transitions:** and_start_state(name,...), and_be_in_state(name,...), and_keep_state, and_restart_state, in_state(name)
 
-**Actions:** move_to(x,y), move_path(x,y), random_move(), random_path(), heal(), eat(), feed(target), attack(target), convert(type), spawn(), sleep(ms)
+**Actions:** move_to(x,y), move_path(x,y), random_move(), random_path(), heal(), eat(), feed(target), attack(target), convert(type), spawn(), sleep(ms), say(msg)
 
-**Properties:** food(), health(), max_food(), tile_food(), tile_type(), type(), speed(), pos(), can_eat()
+**Properties:** food(), health(), max_food(), tile_food(), tile_type(), type(), speed(), pos(), can_eat(), nearest_enemy(), set_path(x,y), set_target(c), set_conversion(t)
 
 **Events:** onSpawned(parent_id), onKilled(killer_id), onIdle(), onTileFood(), onLowHealth(), onTick()
 
