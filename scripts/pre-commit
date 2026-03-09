@@ -16,9 +16,9 @@ fi
 if git diff --cached --name-only | grep -q '^frontend/'; then
     if [ -f frontend/node_modules/.bin/eslint ]; then
         echo "Checking frontend lint..."
-        STAGED_JS=$(git diff --cached --name-only --diff-filter=d | grep '^frontend/src/.*\.\(ts\|tsx\|js\|jsx\)$' || true)
+        STAGED_JS=$(git diff --cached --name-only --diff-filter=d | grep '^frontend/src/.*\.\(ts\|tsx\|js\|jsx\)$' | sed 's|^frontend/||' || true)
         if [ -n "$STAGED_JS" ]; then
-            if ! npx --prefix frontend eslint $STAGED_JS 2>/dev/null; then
+            if ! (cd frontend && npx eslint $STAGED_JS) 2>/dev/null; then
                 echo ""
                 echo "ERROR: ESLint check failed."
                 echo "Run 'cd frontend && npx eslint --fix <files>' to fix."
