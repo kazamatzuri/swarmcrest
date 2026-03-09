@@ -10,14 +10,6 @@ interface ApiKey {
   created_at: string;
 }
 
-const AVAILABLE_SCOPES = [
-  'bots:read',
-  'bots:write',
-  'matches:read',
-  'matches:write',
-  'leaderboard:read',
-];
-
 export function ApiKeys() {
   const { user } = useAuth();
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -26,11 +18,6 @@ export function ApiKeys() {
 
   // Create form
   const [newName, setNewName] = useState('');
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([
-    'bots:read',
-    'matches:read',
-    'leaderboard:read',
-  ]);
   const [creating, setCreating] = useState(false);
 
   // Newly created token (shown once)
@@ -63,7 +50,7 @@ export function ApiKeys() {
     setNewToken(null);
 
     try {
-      const data = await api.createApiKey(newName.trim(), selectedScopes.join(','));
+      const data = await api.createApiKey(newName.trim());
       setNewToken(data.token);
       setNewName('');
       setCopied(false);
@@ -94,14 +81,6 @@ export function ApiKeys() {
       await navigator.clipboard.writeText(newToken);
       setCopied(true);
     }
-  };
-
-  const toggleScope = (scope: string) => {
-    setSelectedScopes(prev =>
-      prev.includes(scope)
-        ? prev.filter(s => s !== scope)
-        : [...prev, scope]
-    );
   };
 
   return (
@@ -161,21 +140,6 @@ export function ApiKeys() {
             style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }}
           />
         </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Scopes</label>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
-            {AVAILABLE_SCOPES.map(scope => (
-              <label key={scope} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input
-                  type="checkbox"
-                  checked={selectedScopes.includes(scope)}
-                  onChange={() => toggleScope(scope)}
-                />
-                {scope}
-              </label>
-            ))}
-          </div>
-        </div>
         <button type="submit" disabled={creating} style={{ padding: '8px 24px' }}>
           {creating ? 'Creating...' : 'Create API Key'}
         </button>
@@ -192,7 +156,6 @@ export function ApiKeys() {
           <thead>
             <tr style={{ borderBottom: '1px solid #333' }}>
               <th style={{ textAlign: 'left', padding: 8 }}>Name</th>
-              <th style={{ textAlign: 'left', padding: 8 }}>Scopes</th>
               <th style={{ textAlign: 'left', padding: 8 }}>Last Used</th>
               <th style={{ textAlign: 'left', padding: 8 }}>Created</th>
               <th style={{ padding: 8 }}></th>
@@ -202,7 +165,6 @@ export function ApiKeys() {
             {keys.map(k => (
               <tr key={k.id} style={{ borderBottom: '1px solid #222' }}>
                 <td style={{ padding: 8 }}>{k.name}</td>
-                <td style={{ padding: 8, fontSize: 12, color: '#aaa' }}>{k.scopes}</td>
                 <td style={{ padding: 8, fontSize: 12, color: '#aaa' }}>
                   {k.last_used_at ? new Date(k.last_used_at + 'Z').toLocaleDateString() : 'Never'}
                 </td>
