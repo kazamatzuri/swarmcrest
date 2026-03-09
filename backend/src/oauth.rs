@@ -298,6 +298,7 @@ pub async fn auth_providers(State(oauth): State<Arc<OAuthState>>) -> Json<serde_
     Json(serde_json::json!({
         "github": oauth.github_client.is_some(),
         "google": oauth.google_client.is_some(),
+        "password": crate::config::is_password_auth_enabled(),
         "local_mode": oauth.local_mode,
     }))
 }

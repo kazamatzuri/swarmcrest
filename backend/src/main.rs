@@ -101,6 +101,7 @@ async fn main() {
 
     // Set local mode flag globally so auth extractors can check it
     config::set_local_mode(cfg.local_mode);
+    config::set_password_auth(cfg.password_auth_enabled);
 
     if cfg.local_mode {
         tracing::info!("==========================================================");

@@ -37,6 +37,7 @@ services:
       - JWT_SECRET=test-e2e-secret
       - ALLOWED_ORIGINS=http://localhost:5174,http://test-frontend:5173
       - AUTH_RATE_LIMIT=1000
+      - LOCAL_DEVELOPMENT=true
     depends_on:
       test-postgres:
         condition: service_healthy

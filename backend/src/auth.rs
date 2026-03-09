@@ -283,6 +283,14 @@ pub async fn register(
     State(db): State<Arc<Database>>,
     Json(req): Json<RegisterRequest>,
 ) -> impl IntoResponse {
+    if !crate::config::is_password_auth_enabled() {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "Registration is disabled. Use SSO to sign in."})),
+        )
+            .into_response();
+    }
+
     if let Err(e) = crate::rate_limit::check_auth_rate_limit(addr.ip()) {
         return (
             StatusCode::TOO_MANY_REQUESTS,
@@ -386,6 +394,14 @@ pub async fn login(
     State(db): State<Arc<Database>>,
     Json(req): Json<LoginRequest>,
 ) -> impl IntoResponse {
+    if !crate::config::is_password_auth_enabled() {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "Password login is disabled. Use SSO to sign in."})),
+        )
+            .into_response();
+    }
+
     if let Err(e) = crate::rate_limit::check_auth_rate_limit(addr.ip()) {
         return (
             StatusCode::TOO_MANY_REQUESTS,

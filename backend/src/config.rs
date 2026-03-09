@@ -13,6 +13,9 @@ pub struct Config {
     pub maps_dir: PathBuf,
     /// Whether to run in local mode (no auth, no rate limiting).
     pub local_mode: bool,
+    /// Whether username/password auth endpoints are enabled.
+    /// Enabled by LOCAL_DEVELOPMENT=true or local_mode.
+    pub password_auth_enabled: bool,
     /// Directory containing pre-built frontend files to serve.
     /// When set, the backend serves static files from this path.
     pub static_dir: Option<PathBuf>,
@@ -66,6 +69,11 @@ impl Config {
                 .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
                 .unwrap_or(false);
 
+        let password_auth_enabled = local_mode
+            || std::env::var("LOCAL_DEVELOPMENT")
+                .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
+                .unwrap_or(false);
+
         let static_dir = std::env::var("STATIC_DIR").ok().map(PathBuf::from);
 
         let worker_count = std::env::var("SWARMCREST_WORKER_COUNT")
@@ -78,10 +86,18 @@ impl Config {
             .and_then(|v| v.parse().ok())
             .unwrap_or(1000);
 
-        let github_client_id = std::env::var("GITHUB_CLIENT_ID").ok();
-        let github_client_secret = std::env::var("GITHUB_CLIENT_SECRET").ok();
-        let google_client_id = std::env::var("GOOGLE_CLIENT_ID").ok();
-        let google_client_secret = std::env::var("GOOGLE_CLIENT_SECRET").ok();
+        let github_client_id = std::env::var("GITHUB_CLIENT_ID")
+            .ok()
+            .filter(|s| !s.is_empty());
+        let github_client_secret = std::env::var("GITHUB_CLIENT_SECRET")
+            .ok()
+            .filter(|s| !s.is_empty());
+        let google_client_id = std::env::var("GOOGLE_CLIENT_ID")
+            .ok()
+            .filter(|s| !s.is_empty());
+        let google_client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
+            .ok()
+            .filter(|s| !s.is_empty());
         let oauth_redirect_base = std::env::var("OAUTH_REDIRECT_BASE")
             .unwrap_or_else(|_| format!("http://localhost:{port}"));
 
@@ -90,6 +106,7 @@ impl Config {
             port,
             maps_dir,
             local_mode,
+            password_auth_enabled,
             static_dir,
             worker_count,
             queue_poll_ms,
@@ -117,6 +134,9 @@ impl Config {
 /// This is set once at startup and read by auth extractors.
 static LOCAL_MODE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
+/// Global flag indicating password auth is enabled.
+static PASSWORD_AUTH: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 /// Set the local mode flag (called once at startup).
 pub fn set_local_mode(enabled: bool) {
     LOCAL_MODE.store(enabled, std::sync::atomic::Ordering::Relaxed);
@@ -125,6 +145,16 @@ pub fn set_local_mode(enabled: bool) {
 /// Check if local mode is active.
 pub fn is_local_mode() -> bool {
     LOCAL_MODE.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Set the password auth flag (called once at startup).
+pub fn set_password_auth(enabled: bool) {
+    PASSWORD_AUTH.store(enabled, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Check if password auth is enabled.
+pub fn is_password_auth_enabled() -> bool {
+    PASSWORD_AUTH.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 /// The user ID used for the auto-created local user.

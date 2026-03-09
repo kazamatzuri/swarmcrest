@@ -1,9 +1,5 @@
-import { useEffect, useState } from 'react';
-
-interface Providers {
-  github: boolean;
-  google: boolean;
-}
+import { useState } from 'react';
+import type { AuthProviders } from '../hooks/useAuthProviders';
 
 const buttonBase: React.CSSProperties = {
   display: 'flex',
@@ -51,21 +47,16 @@ function GoogleIcon() {
   );
 }
 
-export function SsoButtons() {
-  const [providers, setProviders] = useState<Providers | null>(null);
+interface SsoButtonsProps {
+  providers: AuthProviders;
+}
+
+export function SsoButtons({ providers }: SsoButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetch('/api/auth/providers')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setProviders(data); })
-      .catch(() => {});
-  }, []);
-
-  if (!providers || (!providers.github && !providers.google)) {
-    return null;
-  }
+  const hasSso = providers.github || providers.google;
+  if (!hasSso) return null;
 
   const startOAuth = async (provider: 'github' | 'google') => {
     setLoading(provider);
@@ -110,18 +101,20 @@ export function SsoButtons() {
         )}
       </div>
       {error && <p style={{ color: '#f44', fontSize: 13, marginTop: 8 }}>{error}</p>}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        margin: '16px 0',
-        color: '#666',
-        fontSize: 13,
-      }}>
-        <div style={{ flex: 1, height: 1, background: '#333' }} />
-        <span>or</span>
-        <div style={{ flex: 1, height: 1, background: '#333' }} />
-      </div>
+      {providers.password && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          margin: '16px 0',
+          color: '#666',
+          fontSize: 13,
+        }}>
+          <div style={{ flex: 1, height: 1, background: '#333' }} />
+          <span>or</span>
+          <div style={{ flex: 1, height: 1, background: '#333' }} />
+        </div>
+      )}
     </div>
   );
 }
