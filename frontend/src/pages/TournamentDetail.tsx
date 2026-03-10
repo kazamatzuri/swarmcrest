@@ -87,20 +87,18 @@ export function TournamentDetail() {
         }
       }
 
-      // Load standings and matches if tournament has been run
-      if (t.status === 'finished' || t.status === 'running' || t.status === 'abandoned') {
-        try {
-          const [r, s, matchesResp] = await Promise.all([
-            api.getResults(tournamentId),
-            api.getStandings(tournamentId),
-            api.getTournamentMatches(tournamentId),
-          ]);
-          setResults(r);
-          setStandings(s);
-          setTournamentRounds(matchesResp.rounds);
-        } catch {
-          // Results/standings may not be available yet
-        }
+      // Always try to load results, standings, and matches
+      try {
+        const [r, s, matchesResp] = await Promise.all([
+          api.getResults(tournamentId),
+          api.getStandings(tournamentId),
+          api.getTournamentMatches(tournamentId),
+        ]);
+        setResults(r);
+        setStandings(s);
+        setTournamentRounds(matchesResp.rounds);
+      } catch (err) {
+        console.error('Failed to load results/standings/matches:', err);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tournament');
@@ -220,6 +218,30 @@ export function TournamentDetail() {
           </button>
         )}
       </div>
+
+      {/* Tournament Winner */}
+      {tournament.status === 'finished' && standings.length > 0 && (
+        <div style={{
+          padding: '20px 24px',
+          background: 'linear-gradient(135deg, #1a3a1a 0%, #16213e 100%)',
+          border: '1px solid #16c79a',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <span style={{ fontSize: '36px' }}>🏆</span>
+          <div>
+            <div style={{ color: '#16c79a', fontSize: '18px', fontWeight: 700 }}>
+              Tournament Champion: {standings[0].bot_name}
+            </div>
+            <div style={{ color: '#aaa', fontSize: '14px', marginTop: '4px' }}>
+              Score: {standings[0].total_score} | {standings[0].wins}W–{standings[0].losses}L
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div style={{ padding: '12px', background: '#5c1a1a', border: '1px solid #e94560', borderRadius: '4px', marginBottom: '16px', color: '#ff8a8a' }}>
@@ -387,11 +409,98 @@ export function TournamentDetail() {
         </>
       )}
 
-      {/* Match Bracket / Results */}
-      {tournamentRounds.length > 0 && tournament && (
+      {/* Match Results Table */}
+      {tournamentRounds.length > 0 && tournament && (() => {
+        const allMatches = tournamentRounds
+          .flatMap(r => r.matches.map(m => ({ ...m, round: r.round })))
+          .sort((a, b) => a.round - b.round || a.match_id - b.match_id);
+
+        return (
+          <>
+            <h3 style={{ color: '#aaa', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+              Match Results ({allMatches.length})
+            </h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #333' }}>
+                  <th style={thStyle}>Round</th>
+                  <th style={thStyle}>Match</th>
+                  <th style={thStyle}>Players</th>
+                  <th style={thStyle}>Score</th>
+                  <th style={thStyle}>Winner</th>
+                  <th style={thStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allMatches.map(match => {
+                  const sorted = [...match.participants].sort((a, b) => a.player_slot - b.player_slot);
+                  const winner = match.winner_bot_version_id != null
+                    ? sorted.find(p => p.bot_version_id === match.winner_bot_version_id)
+                    : null;
+
+                  return (
+                    <tr key={match.match_id} style={{ borderBottom: '1px solid #222' }}>
+                      <td style={tdStyle}>{match.round}</td>
+                      <td style={tdStyle}>#{match.match_id}</td>
+                      <td style={tdStyle}>
+                        {sorted.map((p, i) => (
+                          <span key={p.bot_version_id}>
+                            <span style={{
+                              color: winner && p.bot_version_id === winner.bot_version_id ? '#16c79a' : '#e0e0e0',
+                              fontWeight: winner && p.bot_version_id === winner.bot_version_id ? 700 : 400,
+                            }}>
+                              {p.bot_name || `Bot #${p.bot_version_id}`}
+                            </span>
+                            {i < sorted.length - 1 && <span style={{ color: '#555' }}> vs </span>}
+                          </span>
+                        ))}
+                      </td>
+                      <td style={tdStyle}>
+                        {sorted.map((p, i) => (
+                          <span key={p.bot_version_id}>
+                            <span style={{
+                              color: winner && p.bot_version_id === winner.bot_version_id ? '#16c79a' : '#e0e0e0',
+                              fontWeight: winner && p.bot_version_id === winner.bot_version_id ? 700 : 400,
+                            }}>
+                              {p.final_score}
+                            </span>
+                            {i < sorted.length - 1 && <span style={{ color: '#555' }}>–</span>}
+                          </span>
+                        ))}
+                      </td>
+                      <td style={tdStyle}>
+                        {winner ? (
+                          <span style={{ color: '#16c79a', fontWeight: 600 }}>
+                            {winner.bot_name || `Bot #${winner.bot_version_id}`}
+                          </span>
+                        ) : match.status === 'finished' ? (
+                          <span style={{ color: '#888' }}>Draw</span>
+                        ) : (
+                          <span style={{ color: '#f5a623', fontSize: '12px' }}>{match.status}</span>
+                        )}
+                      </td>
+                      <td style={tdStyle}>
+                        <button
+                          onClick={() => navigate(`/matches/${match.match_id}`)}
+                          style={btnViewMatch}
+                        >
+                          View Match
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        );
+      })()}
+
+      {/* Bracket View (for single elimination) */}
+      {tournamentRounds.length > 0 && tournament && tournament.format === 'single_elimination' && (
         <>
           <h3 style={{ color: '#aaa', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
-            Matches
+            Bracket View
           </h3>
           <TournamentBracket
             format={tournament.format}
@@ -478,6 +587,17 @@ const btnLink: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: '14px',
   padding: 0,
+};
+
+const btnViewMatch: React.CSSProperties = {
+  background: '#0a0a1a',
+  color: '#f5a623',
+  border: '1px solid #f5a623',
+  padding: '4px 14px',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  fontWeight: 600,
 };
 
 const btnFormat: React.CSSProperties = {
