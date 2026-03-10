@@ -121,7 +121,7 @@ export function GameViewer() {
     setStarting(true);
     try {
       const mapParams = isRandomMap ? { width: mapWidth, height: mapHeight, num_food_spots: mapFoodSpots } : undefined;
-      const result = await api.startGame(players, selectedMap, headless || undefined, mapParams);
+      const result = await api.startGame(players, selectedMap, headless, mapParams);
       if (result.status === 'queued' && result.match_id) {
         setQueuedMatchId(result.match_id);
       } else {

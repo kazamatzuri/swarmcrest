@@ -1159,7 +1159,7 @@ async fn start_game(
     _auth: AuthUser,
     Json(req): Json<StartGameRequest>,
 ) -> impl IntoResponse {
-    let headless_early = req.headless.unwrap_or(false);
+    let headless_early = req.headless.unwrap_or(true);
     if !headless_early && state.game_server.is_running() {
         return json_error(StatusCode::CONFLICT, "A game is already running").into_response();
     }
@@ -1228,7 +1228,7 @@ async fn start_game(
         }
     }
 
-    let headless = req.headless.unwrap_or(false);
+    let headless = req.headless.unwrap_or(true);
 
     if headless {
         // Queue headless game via DB
@@ -1389,7 +1389,7 @@ async fn create_challenge(
         return json_error(StatusCode::FORBIDDEN, "Insufficient API token scope").into_response();
     }
     let user_id = auth.0.sub;
-    let headless = req.headless.unwrap_or(false);
+    let headless = req.headless.unwrap_or(true);
     let format = req.format.clone().unwrap_or_else(|| "1v1".to_string());
 
     if format != "1v1" && format != "ffa" {

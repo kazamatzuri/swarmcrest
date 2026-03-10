@@ -373,7 +373,7 @@ print(msg)
 1. **Backend language**: Rust + mlua. Real Lua 5.1 C engine with safe Rust FFI wrappers. Best combination of exact bot compatibility and memory-safe sandboxing for untrusted player code.
 2. **Renderer**: PixiJS. Using original game sprites, PixiJS provides efficient sprite batching and a mature 2D rendering pipeline.
 3. **Map format**: JSON. Convert original Lua maps to a JSON format. Server loads JSON maps into the game engine - simpler than running Lua map scripts, and the frontend can fetch the same JSON for rendering.
-4. **Game speed**: Real-time (100ms/tick) for the web UI. A future v2.0 headless tournament runner will run as fast as possible without rendering.
+4. **Game speed**: Games default to headless mode (fast compute, no per-tick delay). Pass `headless: false` to run in real-time mode (100ms/tick) for live viewing via WebSocket. The web UI sends `headless: false` when the "Headless" checkbox is unchecked.
 5. **Multiple simultaneous games**: MVP supports one game per server. Architecture should keep game state isolated (no globals) so multiple games can be added later.
 
 ## File Structure
