@@ -616,7 +616,7 @@ POST /api/matches/challenge    - Create a challenge`}</CodeBlock>
         <h4 style={{ color: '#f5a623', marginTop: 16, marginBottom: 8, fontSize: 14 }}>
           Games, Tournaments & Leaderboards
         </h4>
-        <CodeBlock>{`POST /api/game/start           - Start a live game
+        <CodeBlock>{`POST /api/game/start           - Start a game (headless by default)
 GET  /api/game/status          - Check if game is running
 POST /api/game/stop            - Stop current game
 GET  /api/games/active         - List active games
@@ -626,6 +626,14 @@ POST /api/tournaments/{id}/run - Run tournament
 GET  /api/leaderboards/1v1     - 1v1 rankings
 GET  /api/leaderboards/ffa     - FFA rankings
 GET  /api/leaderboards/2v2     - 2v2 rankings`}</CodeBlock>
+
+        <p style={textStyle}>
+          <strong style={{ color: '#e0e0e0' }}>Game start parameters:</strong> Games default to headless
+          (fast compute). Pass <code style={{ color: '#16c79a' }}>headless: false</code> for real-time
+          WebSocket streaming. For random maps, use <code style={{ color: '#16c79a' }}>map_params</code> to
+          control size and food: <code style={{ color: '#16c79a' }}>{'{"width": 50, "height": 50, "num_food_spots": 15}'}</code> (width/height:
+          20-150, food spots: 1-200).
+        </p>
 
         <h4 style={{ color: '#f5a623', marginTop: 16, marginBottom: 8, fontSize: 14 }}>
           Other
@@ -653,15 +661,28 @@ API_KEY="sc_your_key_here"
 curl http://localhost:3000/api/bots \\
   -H "Authorization: Bearer $API_KEY"
 
-# Create a headless 1v1 challenge
+# Create a headless 1v1 challenge (headless is the default)
 curl -X POST http://localhost:3000/api/matches/challenge \\
   -H "Authorization: Bearer $API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "bot_version_id": 1,
     "opponent_bot_version_id": 2,
-    "format": "1v1",
-    "headless": true
+    "format": "1v1"
+  }'
+
+# Start a multi-bot game on a custom-sized random map
+curl -X POST http://localhost:3000/api/game/start \\
+  -H "Authorization: Bearer $API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "players": [
+      {"bot_version_id": 1},
+      {"bot_version_id": 2},
+      {"bot_version_id": 3}
+    ],
+    "map": "random",
+    "map_params": {"width": 80, "height": 80, "num_food_spots": 25}
   }'
 
 # Check your match history

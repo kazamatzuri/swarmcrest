@@ -229,6 +229,12 @@ Content-Type: application/json
   "map": "default"
 }
 ```
+Fields:
+- bot_version_id (required): Your bot version ID
+- opponent_bot_version_id (required): Opponent bot version ID
+- format (optional): "1v1" (default) or "ffa"
+- headless (optional, default: true): false for real-time live game with WebSocket streaming
+- map (optional, default: "random"): Map name or "random"
 
 ### Game Control (Live Games)
 
@@ -239,9 +245,19 @@ Authorization: Bearer <token>
 Content-Type: application/json
 {
   "players": [{"bot_version_id": 1, "name": "Bot A"}, {"bot_version_id": 2}],
-  "map": "random"
+  "map": "random",
+  "headless": false,
+  "map_params": {"width": 50, "height": 50, "num_food_spots": 15}
 }
 ```
+Fields:
+- players (required): Array of {bot_version_id, name?}. At least 2 players.
+- map (optional, default: "random"): Map name or "random"/"default" for a generated map
+- headless (optional, default: true): false for real-time live game with WebSocket streaming
+- map_params (optional): Only used when map is "random"/"default". Overrides random map generation:
+  - width (optional, default: 30, range: 20-150): Map width in tiles
+  - height (optional, default: 30, range: 20-150): Map height in tiles
+  - num_food_spots (optional, default: 10, range: 1-200): Number of food spawner patches
 
 **Game Status:**
 ```
