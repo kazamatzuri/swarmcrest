@@ -87,19 +87,10 @@ export function TournamentDetail() {
         }
       }
 
-      // Always try to load results, standings, and matches
-      try {
-        const [r, s, matchesResp] = await Promise.all([
-          api.getResults(tournamentId),
-          api.getStandings(tournamentId),
-          api.getTournamentMatches(tournamentId),
-        ]);
-        setResults(r);
-        setStandings(s);
-        setTournamentRounds(matchesResp.rounds);
-      } catch (err) {
-        console.error('Failed to load results/standings/matches:', err);
-      }
+      // Load results, standings, and matches independently so one failure doesn't block others
+      api.getResults(tournamentId).then(r => setResults(r)).catch(err => console.error('Failed to load results:', err));
+      api.getStandings(tournamentId).then(s => setStandings(s)).catch(err => console.error('Failed to load standings:', err));
+      api.getTournamentMatches(tournamentId).then(resp => setTournamentRounds(resp.rounds)).catch(err => console.error('Failed to load matches:', err));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tournament');
     } finally {

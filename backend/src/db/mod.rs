@@ -1911,12 +1911,12 @@ impl Database {
                 tr.bot_version_id,
                 COALESCE(b.name, 'Unknown') AS bot_name,
                 COALESCE(SUM(tr.final_score), 0) AS total_score,
-                COUNT(*) AS matches_played
+                CAST(COUNT(*) AS INT) AS matches_played
             FROM tournament_results tr
             JOIN bot_versions bv ON bv.id = tr.bot_version_id
             JOIN bots b ON b.id = bv.bot_id
             WHERE tr.tournament_id = $1
-            GROUP BY tr.bot_version_id
+            GROUP BY tr.bot_version_id, b.name
             ORDER BY total_score DESC
             "#,
         )
